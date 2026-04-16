@@ -1,7 +1,5 @@
 import { Router } from 'express';
-import {
-    getAll, getOne, create, update, remove
-} from '../controllers/stockMovements.controller.js';
+import { getAll, getOne, getSummary } from '../controllers/stockMovements.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { authorise } from '../middleware/roles.js';
 
@@ -11,8 +9,6 @@ router.use(authenticate); // all routes require login
 
 router.get('/',     getAll);
 router.get('/:id',  getOne);
-router.post('/',    authorise('admin', 'manager'), create);
-router.put('/:id',  authorise('admin', 'manager'), update);
-router.delete('/:id', authorise('admin'),          remove);
+router.get('/summary', authorise('admin'), getSummary);
 
 export default router;

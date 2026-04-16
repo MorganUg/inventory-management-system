@@ -1,11 +1,11 @@
-import {router} from 'express';
+import { Router } from 'express';
 import {
   getAll, getOne, create, update, remove
 } from '../controllers/suppliers.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { authorise } from '../middleware/roles.js';
 
-const router = router();
+const router = Router();
 
 router.use(authenticate); //all routes require authentication
 

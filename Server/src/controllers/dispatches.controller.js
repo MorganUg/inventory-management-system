@@ -1,4 +1,4 @@
-import pool from '../db.js';
+import pool from '../config/db.js';
 import { dispatchGoods } from '../services/dispatchService.js';
 
 export const getAll = async (req, res, next) => {

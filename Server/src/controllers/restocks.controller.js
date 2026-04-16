@@ -1,4 +1,4 @@
-import pool from '../db.js';
+import pool from '../config/db.js';
 import { restockMaterial } from '../services/restockService.js';
 
 export const getAll = async (req, res, next) => {
