@@ -19,3 +19,11 @@ export const useUpdateRawMaterial = () => {
     onSuccess: () => queryClient.invalidateQueries(['rawMaterials']),
   });
 }
+
+export const useDeleteRawMaterial = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteRawMaterial,
+    onSuccess: () => queryClient.invalidateQueries(['rawMaterials']),
+  });
+}

@@ -7,6 +7,8 @@ import { AppLayout } from './components/layout/AppLayout.jsx';
 
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/DashboardPage.jsx';
+import RawMaterialsPage from './pages/rawMaterials/RawMaterialsPage.jsx';
+
 import { ProctectedRoute } from './components/shared/ProtectedRoute.jsx';
 
 
@@ -26,6 +28,7 @@ function App() {
               </ProctectedRoute>
             }>
               <Route index element={<DashboardPage />} />
+              <Route path="raw-materials" element={<RawMaterialsPage />} />
             </Route>
           </Routes>
         </BrowserRouter>
