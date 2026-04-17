@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const res =await login(data);
       loginUser(res.data.token, res.data.user);
-      navigate('/dashboard'); // Redirect to dashboard after login
+      navigate('/'); // Redirect to dashboard after login
     }
     catch {
       const errorMessage = 
