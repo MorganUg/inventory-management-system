@@ -2,7 +2,7 @@ import { useRawMaterials } from '../hooks/useRawMaterials.js';
 import { useBatches } from '../hooks/useBatches.js';
 import { useQuery } from '@tanstack/react-query';
 import { getFinishedGoods } from '../api/finishedGoods.api.js';
-import StatCard from '../components/ui/StatCard.jsx';
+import { StatCard } from '../components/ui/StatCard.jsx';
 import { AlertTriangle, ClipboardList, FlaskConical, Package } from 'lucide-react';
 import { Badge } from '../components/ui/Badge.jsx';
 

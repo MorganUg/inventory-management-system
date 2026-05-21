@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { ArrowDownCircle, ArrowUpCircle, BarChart, BarChart2, BookOpen, ClipboardList, FlaskConical, LayoutDashboard, Logs, Package, Truck, Users, Candy } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, BarChart, BarChart2, BookOpen, ClipboardList, FlaskConical, LayoutDashboard, Logs, Package, Truck, Users, Candy, Tag } from 'lucide-react';
 import Logo from '../../assets/logo.png';
 
 const links = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/raw-materials', label: 'Raw Materials', icon: FlaskConical },
-  { to: '/restock', label: 'Restock', icon: ArrowDownCircle },
+  { to: '/categories', label: 'Categories', icon: Tag },
+  { to: '/restocks', label: 'Restock', icon: ArrowDownCircle },
   { to: '/bom', label: 'Bill of Materials', icon: BookOpen },
   { to: '/batches', label: 'Production', icon: ClipboardList },
   { to: '/finished-goods', label: 'Finished Goods', icon: Package },

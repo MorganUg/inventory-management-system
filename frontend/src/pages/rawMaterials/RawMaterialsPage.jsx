@@ -3,8 +3,9 @@ import { useRawMaterials, useDeleteRawMaterial } from '../../hooks/useRawMateria
 import {PageHeader} from '../../components/shared/PageHeader.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
-
+import { Modal } from '../../components/ui/Modal.jsx';
 import { Pencil, Plus, Trash, Trash2 } from 'lucide-react';
+import RawMaterialForm from './RawMaterialForm.jsx';
 
 export default function RawMaterialsPage() {
 
@@ -34,7 +35,7 @@ export default function RawMaterialsPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {['Name', 'Unit', 'In Stock', 'Reorder Level', 'Supplier', ''].map(header =>(
+              {['Name', 'Unit', 'In Stock', 'Reorder Level', 'Supplier', 'Status', 'Actions'].map(header =>(
                 <th key={header} className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">{header}</th>
               ))}
             </tr>
@@ -76,12 +77,12 @@ export default function RawMaterialsPage() {
         )}
       </div>
 
-      {/* <Model open={modalOpen} onClose={handleclose} title={editing ? 'Edit Raw Material' : 'Add Raw Material'}>
+      <Modal open={modalOpen} onClose={handleclose} title={editing ? 'Edit Raw Material' : 'Add Raw Material'}>
         <RawMaterialForm
           initial={editing}
           onSuccess={handleclose}
         />
-      </Model> */}
+      </Modal>
     </div>
   );
 };

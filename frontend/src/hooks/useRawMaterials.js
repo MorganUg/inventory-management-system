@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { createRawMaterial, deleteRawMaterial, getRawMaterials } from '../api/rawMaterials.api.js';
+import { createRawMaterial, updateRawMaterial, deleteRawMaterial, getRawMaterials } from '../api/rawMaterials.api.js';
 
 export const useRawMaterials = () => 
   useQuery({ queryKey: ['rawMaterials'], queryFn: () => getRawMaterials().then(res => res.data) });
@@ -15,7 +15,7 @@ export const useCreateRawMaterial = () => {
 export const useUpdateRawMaterial = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: deleteRawMaterial,
+    mutationFn: ({ id, data}) => updateRawMaterial(id, data),
     onSuccess: () => queryClient.invalidateQueries(['rawMaterials']),
   });
 }

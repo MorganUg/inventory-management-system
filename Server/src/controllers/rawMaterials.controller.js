@@ -44,6 +44,17 @@ export const create = async (req, res, next) => {
 export const update = async (req, res, next) => {
     try {
         const { name, unit, reorder_level, cost_per_unit, category_id, supplier_id } = req.body;
+
+        const safeCategoryId = category_id ? parseInt(category_id) : null;
+        const safeSupplierId = supplier_id ? parseInt(supplier_id) : null;
+
+        if (category_id && isNaN (safeCategoryId)) {
+            return res.status(400).json({error: 'invalid category_id' });
+        }
+        if (supplier_id && isNaN (safeSupplierId)) {
+            return res.status(400).json({error: 'invalid supplier_id' });
+        }
+
         const result = await pool.query(
             `UPDATE raw_materials SET
              name=$1, unit=$2, reorder_level=$3,

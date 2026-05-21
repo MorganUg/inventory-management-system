@@ -5,7 +5,7 @@ export const Navbar = () => {
   const { user, logout } = useAuth();
 
   return (
-    <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+    <header className="h-14 bg-white flex items-center justify-between px-6">
       <div />
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-sm text-gray-600">
