@@ -1,7 +1,7 @@
 import pool from "../config/db.js";
 import { completeBatch } from "../services/batchService.js";
 
-const getBatchDetail = async (batchId) => {
+async function getBatchDetail(batchId) {
   const batch = await pool.query(
     "SELECT * FROM production_batches WHERE id = $1",
     [batchId],
@@ -29,7 +29,7 @@ const getBatchDetail = async (batchId) => {
     materials: materials.rows,
     outputs: outputs.rows,
   };
-};
+}
 
 export const getAll = async (req, res, next) => {
   try {
@@ -154,11 +154,35 @@ export const create = async (req, res, next) => {
       ]);
     }
 
+    // Fetch detail using the transaction client before commit (more reliable)
+    const createdBatch = await client.query(
+      "SELECT * FROM production_batches WHERE id = $1",
+      [batchId],
+    );
+
+    const batchMaterials = await client.query(
+      `SELECT bm.*, rm.name AS material_name, rm.unit
+         FROM batch_materials bm
+         JOIN raw_materials rm ON rm.id = bm.material_id
+         WHERE bm.batch_id = $1`,
+      [batchId],
+    );
+
+    const batchOutputs = await client.query(
+      `SELECT bo.*, fg.name AS finished_good_name
+         FROM batch_outputs bo
+         JOIN finished_goods fg ON fg.id = bo.finished_good_id
+         WHERE bo.batch_id = $1`,
+      [batchId],
+    );
+
     await client.query("COMMIT");
 
-    // 3. Fetch and return the full batch detail
-    const result = await getBatchDetail(batchId);
-    res.status(201).json(result);
+    res.status(201).json({
+      ...createdBatch.rows[0],
+      materials: batchMaterials.rows,
+      outputs: batchOutputs.rows,
+    });
   } catch (err) {
     try {
       await client.query("ROLLBACK");

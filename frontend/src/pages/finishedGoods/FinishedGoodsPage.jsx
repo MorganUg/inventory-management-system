@@ -7,6 +7,7 @@ import { PageHeader } from "../../components/shared/PageHeader.jsx";
 import { Button } from "../../components/ui/Button.jsx";
 import { Badge } from "../../components/ui/Badge.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import FinishedGoodForm from "./FinishedGoodForm.jsx";
 import {
@@ -26,6 +27,7 @@ export default function FinishedGoodsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteError, setDeleteError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, name }
   const [search, setSearch] = useState("");
 
   const handleEdit = (good) => {
@@ -37,20 +39,19 @@ export default function FinishedGoodsPage() {
     setModalOpen(false);
   };
 
-  const handleDelete = async (id, name) => {
+  const handleDelete = (id, name) => {
     setDeleteError("");
-    if (
-      !window.confirm(
-        `Delete finished good "${name}"? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+    setConfirmDelete({ id, name });
+  };
+
+  const confirmDeleteProduct = async () => {
+    if (!confirmDelete) return;
     try {
-      await deleteMutation.mutateAsync(id);
+      await deleteMutation.mutateAsync(confirmDelete.id);
     } catch (err) {
       setDeleteError(err.response?.data?.error || "Failed to delete product.");
     }
+    setConfirmDelete(null);
   };
 
   if (isLoading) return <div className="text-sm text-gray-500">Loading...</div>;
@@ -297,6 +298,17 @@ export default function FinishedGoodsPage() {
       >
         <FinishedGoodForm initial={editing} onSuccess={handleClose} />
       </Modal>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={confirmDeleteProduct}
+        title="Delete Finished Good"
+        message={`Delete finished good "${confirmDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { StatCard } from "../../components/ui/StatCard.jsx";
 import { Button } from "../../components/ui/Button.jsx";
 import { Badge } from "../../components/ui/Badge.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
 import SupplierForm from "./SupplierForm.jsx";
 import {
   Plus,
@@ -30,6 +31,7 @@ export default function SuppliersPage() {
   const [editing, setEditing] = useState(null);
   const [deleteError, setDeleteError] = useState("");
   const [expandedId, setExpandedId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, name }
   const { data: expandedSupplier, isLoading: loadingExpanded } =
     useSupplier(expandedId);
 
@@ -42,20 +44,19 @@ export default function SuppliersPage() {
     setModalOpen(false);
   };
 
-  const handleDelete = async (id, name) => {
+  const handleDelete = (id, name) => {
     setDeleteError("");
-    if (
-      !window.confirm(
-        `Delete supplier "${name}"? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+    setConfirmDelete({ id, name });
+  };
+
+  const confirmDeleteSupplier = async () => {
+    if (!confirmDelete) return;
     try {
-      await deleteMutation.mutateAsync(id);
+      await deleteMutation.mutateAsync(confirmDelete.id);
     } catch (err) {
       setDeleteError(err.response?.data?.error || "Failed to delete supplier.");
     }
+    setConfirmDelete(null);
   };
 
   const toggleExpand = (id) =>
@@ -265,6 +266,17 @@ export default function SuppliersPage() {
       >
         <SupplierForm initial={editing} onSuccess={handleClose} />
       </Modal>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={confirmDeleteSupplier}
+        title="Delete Supplier"
+        message={`Delete supplier "${confirmDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

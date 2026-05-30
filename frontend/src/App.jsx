@@ -21,6 +21,8 @@ import DispatchesPage from "./pages/dispatches/DispatchesPage.jsx";
 import StockMovementsPage from "./pages/stockMovements/StockMovementPage.jsx";
 import ReportsPage from "./pages/reports/ReportsPage.jsx";
 import BatchDetailPage from "./pages/batches/BatchDetailPage.jsx";
+import UsersPage from "./pages/users/UsersPage.jsx";
+import LogsPage from "./pages/logs/LogsPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +86,22 @@ function App() {
                 element={
                   <RoleRoute roles={["admin", "manager"]}>
                     <ReportsPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="users"
+                element={
+                  <RoleRoute roles={["admin", "manager"]}>
+                    <UsersPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="logs"
+                element={
+                  <RoleRoute roles={["admin"]}>
+                    <LogsPage />
                   </RoleRoute>
                 }
               />

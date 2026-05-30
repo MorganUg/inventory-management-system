@@ -9,12 +9,14 @@ import { Badge } from "../../components/ui/Badge.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
 import { Pencil, Plus, Trash, Trash2 } from "lucide-react";
 import RawMaterialForm from "./RawMaterialForm.jsx";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
 
 export default function RawMaterialsPage() {
   const { data: materials = [], isLoading } = useRawMaterials();
   const deleteMutation = useDeleteRawMaterial();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // material to delete
 
   const handleEdit = (material) => {
     setEditing(material);
@@ -93,16 +95,7 @@ export default function RawMaterialsPage() {
                       <Pencil size={15} />
                     </button>
                     <button
-                      onClick={() => {
-                        if (
-                          !window.confirm(
-                            `Delete raw material "${material.name}"? This action cannot be undone.`,
-                          )
-                        ) {
-                          return;
-                        }
-                        deleteMutation.mutate(material.id);
-                      }}
+                      onClick={() => setConfirmDelete(material)}
                       className="text-gray-400 hover:text-red-500"
                     >
                       <Trash2 size={15} />
@@ -127,6 +120,22 @@ export default function RawMaterialsPage() {
       >
         <RawMaterialForm initial={editing} onSuccess={handleclose} />
       </Modal>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => {
+          if (confirmDelete) {
+            deleteMutation.mutate(confirmDelete.id);
+            setConfirmDelete(null);
+          }
+        }}
+        title="Delete Raw Material"
+        message={`Delete raw material "${confirmDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

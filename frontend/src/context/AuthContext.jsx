@@ -24,13 +24,21 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
+  const clearForcePasswordChange = () => {
+    if (user) {
+      setUser({ ...user, force_password_change: false });
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginUser, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, loginUser, logout, clearForcePasswordChange }}
+    >
       {children}
     </AuthContext.Provider>
   );

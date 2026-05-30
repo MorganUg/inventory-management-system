@@ -8,6 +8,7 @@ import {
 import { Badge } from "../../components/ui/Badge.jsx";
 import { Button } from "../../components/ui/Button.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
 import { useForm } from "react-hook-form";
 import {
   ArrowLeft,
@@ -161,11 +162,22 @@ export default function BatchDetailPage() {
 
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [error, setError] = useState("");
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   const handleStatusChange = async (status) => {
     setError("");
     try {
       await statusMutation.mutateAsync({ id, status });
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to update status.");
+    }
+  };
+
+  const confirmCancelBatch = async () => {
+    setConfirmCancel(false);
+    setError("");
+    try {
+      await statusMutation.mutateAsync({ id, status: "cancelled" });
     } catch (err) {
       setError(err.response?.data?.error || "Failed to update status.");
     }
@@ -225,7 +237,7 @@ export default function BatchDetailPage() {
             <>
               <Button
                 variant="secondary"
-                onClick={() => handleStatusChange("cancelled")}
+                onClick={() => setConfirmCancel(true)}
               >
                 <XCircle size={15} className="mr-1" /> Cancel
               </Button>
@@ -389,6 +401,18 @@ export default function BatchDetailPage() {
           }}
         />
       </Modal>
+
+      {/* Cancel Confirmation */}
+      <ConfirmDialog
+        open={confirmCancel}
+        onClose={() => setConfirmCancel(false)}
+        onConfirm={confirmCancelBatch}
+        title="Cancel Batch"
+        message="Are you sure you want to cancel this production batch? This action cannot be undone."
+        confirmText="Cancel Batch"
+        variant="danger"
+        loading={statusMutation.isPending}
+      />
     </div>
   );
 }

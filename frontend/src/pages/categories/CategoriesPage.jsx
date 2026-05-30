@@ -4,6 +4,7 @@ import { PageHeader } from "../../components/shared/PageHeader.jsx";
 import { Button } from "../../components/ui/Button.jsx";
 import { Badge } from "../../components/ui/Badge.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
 import CategoryForm from "./CategoryForm.jsx";
 import { Plus, Pencil, Trash2, Tag } from "lucide-react";
 
@@ -14,6 +15,7 @@ export default function CategoriesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteError, setDeleteError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, name }
 
   const handleEdit = (cat) => {
     setEditing(cat);
@@ -24,20 +26,19 @@ export default function CategoriesPage() {
     setModalOpen(false);
   };
 
-  const handleDelete = async (id, name) => {
+  const handleDelete = (id, name) => {
     setDeleteError("");
-    if (
-      !window.confirm(
-        `Delete category "${name}"? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+    setConfirmDelete({ id, name });
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!confirmDelete) return;
     try {
-      await deleteMutation.mutateAsync(id);
+      await deleteMutation.mutateAsync(confirmDelete.id);
     } catch (err) {
       setDeleteError(err.response?.data?.error || "Failed to delete category.");
     }
+    setConfirmDelete(null);
   };
 
   // Split into two groups for display
@@ -194,6 +195,17 @@ export default function CategoriesPage() {
       >
         <CategoryForm initial={editing} onSuccess={handleClose} />
       </Modal>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={confirmDeleteCategory}
+        title="Delete Category"
+        message={`Delete category "${confirmDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { PageHeader } from "../../components/shared/PageHeader.jsx";
 import { Badge } from "../../components/ui/Badge.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
 import CustomerForm from "./CustomerForm.jsx";
 import {
   Mail,
@@ -30,6 +31,7 @@ export default function CustomerPage() {
   const [editing, setEditing] = useState(null);
   const [deleteError, setDeleteError] = useState("");
   const [expandedId, setExpandedId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, name }
 
   const { data: expandedCustomer, isLoading: loadingExpanded } =
     useCustomer(expandedId);
@@ -43,22 +45,21 @@ export default function CustomerPage() {
     setModelOpen(false);
   };
 
-  const handleDelete = async (id, name) => {
+  const handleDelete = (id, name) => {
     setDeleteError("");
-    if (
-      !window.confirm(
-        `Delete customer "${name}"? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+    setConfirmDelete({ id, name });
+  };
+
+  const confirmDeleteCustomer = async () => {
+    if (!confirmDelete) return;
     try {
-      await deleteMutation.mutateAsync(id);
+      await deleteMutation.mutateAsync(confirmDelete.id);
     } catch (errr) {
       setDeleteError(
         errr.response?.data?.error || "failed to delete customer.",
       );
     }
+    setConfirmDelete(null);
   };
 
   const toggleExpand = (id) =>
@@ -294,6 +295,17 @@ export default function CustomerPage() {
       >
         <CustomerForm initial={editing} onSuccess={handleClose} />
       </Modal>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={confirmDeleteCustomer}
+        title="Delete Customer"
+        message={`Delete customer "${confirmDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

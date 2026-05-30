@@ -13,6 +13,7 @@ import { Modal } from "../../components/ui/Modal.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import BomForm from "./BomForm.jsx";
 import BomItemForm from "./BomItemForm.jsx";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
 import {
   Plus,
   BookOpen,
@@ -35,6 +36,7 @@ export default function BomPage() {
   const [selectedBom, setSelectedBom] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [error, setError] = useState("");
+  const [confirmDeleteItem, setConfirmDeleteItem] = useState(null); // { bomId, itemId, materialName }
 
   const { data: expandedBom, isLoading: loadingExpanded } = useBom(expandedId);
 
@@ -55,18 +57,18 @@ export default function BomPage() {
 
   const handleDeleteItem = async (bomId, itemId, materialName) => {
     setError("");
-    if (
-      !window.confirm(
-        `Remove ingredient "${materialName}" from this BOM? This cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+    setConfirmDeleteItem({ bomId, itemId, materialName });
+  };
+
+  const confirmDeleteIngredient = async () => {
+    if (!confirmDeleteItem) return;
+    const { itemId } = confirmDeleteItem;
     try {
       await deleteItemMutation.mutateAsync(itemId);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to remove ingredient.");
     }
+    setConfirmDeleteItem(null);
   };
 
   const handleActivate = async (id) => {

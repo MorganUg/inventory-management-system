@@ -40,6 +40,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Card } from "../components/ui/Card.jsx";
+import ChangePasswordModal from "../components/shared/ChangePasswordModal.jsx";
+import { useState } from "react";
 
 const COLORS = [
   "#f59e0b",
@@ -60,6 +62,7 @@ const statusConfig = {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const { data: materials = [] } = useRawMaterials();
   const { data: batches = [] } = useBatches();
@@ -95,6 +98,22 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Force Password Change Banner */}
+      {user?.force_password_change && (
+        <div className="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-xl text-sm flex items-center justify-between">
+          <span>
+            <strong>Security Notice:</strong> An administrator has reset your
+            password. You must set a new one to continue.
+          </span>
+          <button
+            onClick={() => setShowChangePassword(true)}
+            className="underline font-medium hover:text-red-900"
+          >
+            Change Password
+          </button>
+        </div>
+      )}
+
       <div className="bg-amber-500 rounded-xl px-5 py-3 flex items-center justify-between text-white">
         <div className="flex items-center gap-4">
           <div>
@@ -506,6 +525,12 @@ export default function DashboardPage() {
           )}
         </Card>
       </div>
+
+      <ChangePasswordModal
+        open={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+        forceChange={user?.force_password_change}
+      />
     </div>
   );
 }
