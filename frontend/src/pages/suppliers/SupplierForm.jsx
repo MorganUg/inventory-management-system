@@ -37,7 +37,7 @@ export default function SupplierForm({ initial, onSuccess }) {
       }
       onSuccess();
     } catch (err) {
-      console.error('Failed to save supplier:', err);
+      // error shown in UI
     }
   };
 

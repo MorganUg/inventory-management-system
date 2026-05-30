@@ -12,9 +12,9 @@ export const useCreateDispatch = () => {
   return useMutation({
     mutationFn: createDispatch,
     onSuccess: () => {
-      queryClient.invalidateQueries(['dispatches']);
-      queryClient.invalidateQueries(['finishedGoods']); // Update stock levels
-      queryClient.invalidateQueries(['stockMovements']); // new movement logged
+      queryClient.invalidateQueries({ queryKey: ['dispatches'] }); // Refresh dispatch list
+      queryClient.invalidateQueries({ queryKey: ['finishedGoods'] }); // Update stock levels
+      queryClient.invalidateQueries({ queryKey: ['stockMovements'] }); // new movement logged
     }
   });
 };

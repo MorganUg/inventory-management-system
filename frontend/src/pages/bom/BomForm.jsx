@@ -22,7 +22,7 @@ export default function BomForm({ onSuccess }) {
       await createMutation.mutateAsync(payload);
       onSuccess();
     } catch (err) {
-      console.error("Failed to create BOM:", err);
+      // error handled in parent
     }
   };
 

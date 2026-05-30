@@ -43,8 +43,8 @@ export const useAddBomItem = (bomId) => {
   return useMutation({
     mutationFn: (data) => addBomItem(bomId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['boms', bomId]);
-      queryClient.invalidateQueries(['boms']);
+      queryClient.invalidateQueries({ queryKey: ['boms', bomId] });
+      queryClient.invalidateQueries({ queryKey: ['boms'] });
     }
   });
 };
@@ -53,7 +53,7 @@ export const useUpdateBomItem = (bomId) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ itemId, data }) => updateBomItem(bomId, itemId, data),
-    onSuccess: () => queryClient.invalidateQueries(['boms', bomId])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['boms', bomId] })
   });
 };
 
@@ -61,6 +61,6 @@ export const useDeleteBomItem = (bomId) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (itemId) => deleteBomItem(bomId, itemId),
-    onSuccess: () => queryClient.invalidateQueries(['boms', bomId])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['boms', bomId] })
   });
 };

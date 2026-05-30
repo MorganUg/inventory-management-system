@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useDispatches, useCreateDispatch } from "../../hooks/useDispatches.js";
 import { useFinishedGoods } from "../../hooks/useFinishedGoods.js";
 import { useCustomers } from "../../hooks/useCustomers.js";
+import { Button } from "../../components/ui/Button.jsx";
+import { useForm } from "react-hook-form";
+import { Package, AlertCircle } from "lucide-react";
 
-function DispatchForm({ onSuccess }) {
+export default function DispatchForm({ onSuccess }) {
   const {
     register,
     handleSubmit,
@@ -33,7 +35,7 @@ function DispatchForm({ onSuccess }) {
       await createMutation.mutateAsync(payload);
       onSuccess();
     } catch (err) {
-      console.error("Failed to create dispatch:", err);
+      // error handled via mutation state
     }
   };
 
@@ -76,11 +78,11 @@ function DispatchForm({ onSuccess }) {
       {selectedGood && (
         <div
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm
-            ${
-              parseFloat(selectedGood.quantity_in_stock) > 0
-                ? "bg-green-50 border border-green-200 text-green-700"
-                : "bg-red-50 border border-red-200 text-red-700"
-            }`}
+          ${
+            parseFloat(selectedGood.quantity_in_stock) > 0
+              ? "bg-green-50 border border-green-200 text-green-700"
+              : "bg-red-50 border border-red-200 text-red-700"
+          }`}
         >
           <Package size={14} />
           <span>

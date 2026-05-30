@@ -19,9 +19,9 @@ export const useCreateRestock = () => {
   return useMutation({
     mutationFn: createRestock,
     onSuccess: () => {
-      queryClient.invalidateQueries(['restocks']);
-      queryClient.invalidateQueries(['rawMaterials']); // Updates stock levels
-      queryClient.invalidateQueries(['stockMovements']) // new movement logged
+      queryClient.invalidateQueries({ queryKey: ['restocks'] }); // Refresh restock list  
+      queryClient.invalidateQueries({ queryKey: ['rawMaterials'] }); // Updates stock levels
+      queryClient.invalidateQueries({ queryKey: ['stockMovements'] }); // new movement logged
     }
   });
 };

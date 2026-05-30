@@ -10,7 +10,8 @@ export const useStockMovements = (params = {}) =>
 export const useStockMovementsSummary = () => 
   useQuery({
     queryKey: ['stockMovements', 'summary'],
-    queryFn: () => import('../api/axios.js')
-                    .then(m => m.default.get('/stock-movements/summary'))
-                    .then(res => res.data)
+    queryFn: () => 
+      import('../api/axios.js')
+        .then(m => m.default.get('/stock-movements/summary'))
+        .then(res => res.data)
   });

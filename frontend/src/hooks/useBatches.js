@@ -1,5 +1,5 @@
-import { completeBatch, createBatch, getBatch, getBatches } from '../api/batches.api';
-import { useQuery } from '@tanstack/react-query';
+import { completeBatch, createBatch, getBatch, getBatches, updateBatchStatus } from '../api/batches.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useBatches = () => 
   useQuery({ queryKey: ['batches'], queryFn: () => getBatches().then(res => res.data) });
@@ -15,15 +15,28 @@ export const useCreateBatch = () => {
   });
 }
 
+export const useUpdateBatchStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, status }) => 
+      updateBatchStatus(id, status),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['batches'] });
+    },
+  });
+};
+
 export const useCompleteBatch = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({id, outputs }) => completeBatch(id, outputs),
     onSuccess: () => {
-      queryClient.invalidateQueries(['batches']),
-      queryClient.invalidateQueries(['rawMaterials']),
-      queryClient.invalidateQueries(['finishedGoods']);
-      queryClient.invalidateQueries(['stockMovements']);
+      queryClient.invalidateQueries({ queryKey: ['batches'] }),
+      queryClient.invalidateQueries({ queryKey: ['rawMaterials'] }),
+      queryClient.invalidateQueries({ queryKey: ['finishedGoods'] }),
+      queryClient.invalidateQueries({ queryKey: ['stockMovements'] });
     }
   });
 };

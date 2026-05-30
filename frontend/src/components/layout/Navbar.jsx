@@ -1,5 +1,5 @@
-import { LogOut, User } from 'lucide-react';
-import { useAuth } from '../../pages/context/AuthContext.jsx';
+import { LogOut, User } from "lucide-react";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
@@ -15,7 +15,7 @@ export const Navbar = () => {
             {user?.role}
           </span>
         </div>
-        <button 
+        <button
           onClick={logout}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 transition-colors"
         >
@@ -23,7 +23,6 @@ export const Navbar = () => {
           Logout
         </button>
       </div>
-
     </header>
   );
 };

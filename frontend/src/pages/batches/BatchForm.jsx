@@ -1,4 +1,3 @@
-// src/pages/batches/BatchForm.jsx
 import { useForm, useFieldArray } from "react-hook-form";
 import { useCreateBatch } from "../../hooks/useBatches.js";
 import { useFinishedGoods } from "../../hooks/useFinishedGoods.js";
@@ -12,6 +11,7 @@ export default function BatchForm({ onSuccess }) {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -19,7 +19,10 @@ export default function BatchForm({ onSuccess }) {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({ name: "outputs" });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "outputs",
+  });
   const createMutation = useCreateBatch();
   const { data: goods = [] } = useFinishedGoods();
 
@@ -46,7 +49,7 @@ export default function BatchForm({ onSuccess }) {
       await createMutation.mutateAsync(payload);
       onSuccess();
     } catch (err) {
-      console.error("Failed to create batch:", err);
+      // error handled in UI via form state
     }
   };
 

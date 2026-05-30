@@ -51,7 +51,7 @@ function CompleteBatchForm({ batch, onSuccess }) {
       await completeMutation.mutateAsync({ id: batch.id, outputs });
       onSuccess();
     } catch (err) {
-      console.error("Failed to complete batch:", err);
+      // error already surfaced via mutation state
     }
   };
 
@@ -62,12 +62,18 @@ function CompleteBatchForm({ batch, onSuccess }) {
         raw materials and update finished goods stock.
       </p>
 
+      {batch.materials?.length === 0 && (
+        <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-700">
+          No raw material allocations were found for this batch. Make sure the
+          produced product has an active BOM before completing.
+        </div>
+      )}
+
       <div className="space-y-3">
         {batch.outputs?.map((output, index) => (
           <div
             key={output.finished_good_id}
-            className="flex items-center
-                        justify-between bg-gray-50 rounded-lg px-4 py-3"
+            className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3"
           >
             <div>
               <p className="text-sm font-medium">{output.finished_good_name}</p>
@@ -297,7 +303,8 @@ export default function BatchDetailPage() {
             </table>
           ) : (
             <p className="text-sm text-gray-400 text-center py-6">
-              No materials assigned yet.
+              No materials assigned yet. This batch has no active BOM materials
+              assigned for the selected product(s).
             </p>
           )}
         </div>

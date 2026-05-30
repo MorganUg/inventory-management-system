@@ -1,12 +1,11 @@
 // src/pages/dispatches/DispatchesPage.jsx
 import { useState } from "react";
-import { useDispatches, useCreateDispatch } from "../../hooks/useDispatches.js";
+import { useDispatches } from "../../hooks/useDispatches.js";
 import { PageHeader } from "../../components/shared/PageHeader.jsx";
 import { Button } from "../../components/ui/Button.jsx";
-import { Badge } from "../../components/ui/Badge.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
-import { useForm } from "react-hook-form";
+import DispatchForm from "./DispatchForm.jsx";
 import {
   Plus,
   ArrowUpCircle,
@@ -15,7 +14,6 @@ import {
   TrendingUp,
   Calendar,
   Truck,
-  AlertCircle,
 } from "lucide-react";
 
 export default function DispatchesPage() {
@@ -50,7 +48,7 @@ export default function DispatchesPage() {
       (d.customer || "").toLowerCase().includes(search.toLowerCase()),
   );
 
-  // Group by customer for quick summary
+  // Top customers
   const byCustomer = dispatches.reduce((acc, d) => {
     const name = d.customer || "Unknown";
     acc[name] = (acc[name] || 0) + 1;
@@ -102,7 +100,10 @@ export default function DispatchesPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         {/* Total value banner */}
-        <div className="lg:col-span-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center justify-between">
+        <div
+          className="lg:col-span-3 bg-amber-50 border border-amber-200
+                    rounded-xl px-5 py-4 flex items-center justify-between"
+        >
           <div>
             <p className="text-sm text-amber-700 font-medium">
               Total Dispatch Value
@@ -129,7 +130,10 @@ export default function DispatchesPage() {
               {topCustomers.map(([name, count]) => (
                 <div key={name} className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 truncate">{name}</span>
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                  <span
+                    className="text-xs bg-amber-100 text-amber-700
+                                        px-2 py-0.5 rounded-full font-medium"
+                  >
                     {count}
                   </span>
                 </div>
@@ -148,7 +152,8 @@ export default function DispatchesPage() {
           placeholder="Search by product or customer..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2
+                        text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
       </div>
 
@@ -168,7 +173,8 @@ export default function DispatchesPage() {
               ].map((h) => (
                 <th
                   key={h}
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
+                  className="text-left px-4 py-3 text-xs
+                                    font-medium text-gray-500 uppercase"
                 >
                   {h}
                 </th>
@@ -182,43 +188,30 @@ export default function DispatchesPage() {
                 parseFloat(d.price_per_unit || 0);
               return (
                 <tr key={d.id} className="hover:bg-gray-50">
-                  {/* Product */}
                   <td className="px-4 py-3 font-medium text-gray-900">
                     {d.product}
                   </td>
-
-                  {/* Customer */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-gray-600">
                       <Truck size={13} />
                       <span>{d.customer || "—"}</span>
                     </div>
                   </td>
-
-                  {/* Qty dispatched */}
                   <td className="px-4 py-3 font-medium text-amber-600">
                     {parseFloat(d.quantity_dispatched).toLocaleString()}
                   </td>
-
-                  {/* Value */}
                   <td className="px-4 py-3 text-gray-700">
                     {value > 0 ? `UGX ${value.toLocaleString()}` : "—"}
                   </td>
-
-                  {/* Dispatched by */}
                   <td className="px-4 py-3 text-gray-500">
                     {d.dispatched_by_name || "—"}
                   </td>
-
-                  {/* Date */}
                   <td className="px-4 py-3 text-gray-500">
                     <div className="flex items-center gap-1">
                       <Calendar size={12} />
                       {new Date(d.dispatched_at).toLocaleDateString()}
                     </div>
                   </td>
-
-                  {/* Notes */}
                   <td className="px-4 py-3 text-gray-400 text-xs max-w-32 truncate">
                     {d.notes || "—"}
                   </td>

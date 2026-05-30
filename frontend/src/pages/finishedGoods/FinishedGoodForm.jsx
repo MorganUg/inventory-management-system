@@ -52,7 +52,7 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
       }
       onSuccess();
     } catch (err) {
-      console.error("Failed to save finished good:", err);
+      // error displayed in UI
     }
   };
 
@@ -67,9 +67,7 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
           {...register("name", { required: "Product name is required" })}
           type="text"
           placeholder="e.g. Milk Candy"
-          className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm
-                        focus:outline-none focus:ring-2 focus:ring-amber-400
-                        ${errors.name ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+          className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 ${errors.name ? "border-red-400 bg-red-50" : "border-gray-300"}`}
         />
         {errors.name && (
           <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
@@ -83,9 +81,7 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
         </label>
         <select
           {...register("unit", { required: "Unit is required" })}
-          className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm
-                        focus:outline-none focus:ring-2 focus:ring-amber-400
-                        ${errors.unit ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+          className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 ${errors.unit ? "border-red-400 bg-red-50" : "border-gray-300"}`}
         >
           <option value="">Select unit</option>
           {["pieces", "boxes", "bags", "kg", "grams"].map((u) => (
@@ -113,9 +109,7 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
             step="0.01"
             min="0"
             placeholder="0"
-            className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm
-                            focus:outline-none focus:ring-2 focus:ring-amber-400
-                            ${errors.price_per_unit ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+            className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 ${errors.price_per_unit ? "border-red-400 bg-red-50" : "border-gray-300"}`}
           />
           {errors.price_per_unit && (
             <p className="mt-1 text-xs text-red-500">
@@ -135,9 +129,7 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
             type="number"
             min="1"
             placeholder="e.g. 90"
-            className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm
-                            focus:outline-none focus:ring-2 focus:ring-amber-400
-                            ${errors.expiry_duration_days ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+            className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 ${errors.expiry_duration_days ? "border-red-400 bg-red-50" : "border-gray-300"}`}
           />
           {errors.expiry_duration_days && (
             <p className="mt-1 text-xs text-red-500">
@@ -153,9 +145,7 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
         <select
           {...register("category_id")}
           disabled={loadingCategories}
-          className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2
-                        text-sm focus:outline-none focus:ring-2 focus:ring-amber-400
-                        disabled:opacity-50"
+          className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-50"
         >
           <option value="">
             {loadingCategories ? "Loading..." : "Select category (optional)"}

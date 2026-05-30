@@ -1,6 +1,7 @@
 // src/pages/bom/BomPage.jsx
 import { useState } from "react";
 import {
+  useBom,
   useBoms,
   useActivateBom,
   useDeleteBomItem,
@@ -24,6 +25,7 @@ import {
 
 export default function BomPage() {
   const { data: boms = [], isLoading } = useBoms();
+
   const activateMutation = useActivateBom();
   const deleteItemMutation = useDeleteBomItem(null);
 
@@ -33,6 +35,8 @@ export default function BomPage() {
   const [selectedBom, setSelectedBom] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [error, setError] = useState("");
+
+  const { data: expandedBom, isLoading: loadingExpanded } = useBom(expandedId);
 
   const toggleExpand = (id) =>
     setExpandedId((prev) => (prev === id ? null : id));
@@ -49,8 +53,15 @@ export default function BomPage() {
     setItemModalOpen(true);
   };
 
-  const handleDeleteItem = async (bomId, itemId) => {
+  const handleDeleteItem = async (bomId, itemId, materialName) => {
     setError("");
+    if (
+      !window.confirm(
+        `Remove ingredient "${materialName}" from this BOM? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
     try {
       await deleteItemMutation.mutateAsync(itemId);
     } catch (err) {
@@ -183,9 +194,14 @@ export default function BomPage() {
             </div>
 
             {/* Expanded ingredients table */}
+            {/* Expanded ingredients table */}
             {expandedId === bom.id && (
               <div className="border-t border-gray-100">
-                {bom.items && bom.items.length > 0 ? (
+                {loadingExpanded ? (
+                  <p className="text-sm text-gray-400 text-center py-6">
+                    Loading ingredients...
+                  </p>
+                ) : expandedBom?.items?.length > 0 ? (
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50">
                       <tr>
@@ -198,7 +214,8 @@ export default function BomPage() {
                         ].map((h) => (
                           <th
                             key={h}
-                            className="text-left px-5 py-2 text-xs font-medium text-gray-500 uppercase"
+                            className="text-left px-5 py-2 text-xs
+                                    font-medium text-gray-500 uppercase"
                           >
                             {h}
                           </th>
@@ -206,7 +223,7 @@ export default function BomPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {bom.items.map((item) => (
+                      {expandedBom.items.map((item) => (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-5 py-3 font-medium">
                             {item.material_name}
@@ -223,14 +240,20 @@ export default function BomPage() {
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => handleEditItem(bom, item)}
+                                onClick={() =>
+                                  handleEditItem(expandedBom, item)
+                                }
                                 className="text-gray-400 hover:text-amber-500 transition-colors"
                               >
                                 <Pencil size={14} />
                               </button>
                               <button
                                 onClick={() =>
-                                  handleDeleteItem(bom.id, item.id)
+                                  handleDeleteItem(
+                                    expandedBom.id,
+                                    item.id,
+                                    item.material_name,
+                                  )
                                 }
                                 className="text-gray-400 hover:text-red-500 transition-colors"
                               >

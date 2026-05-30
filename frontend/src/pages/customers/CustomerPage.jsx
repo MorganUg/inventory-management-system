@@ -1,47 +1,77 @@
-import React, { useState } from 'react'
-import { useCustomer, useCustomers, useDeleteCustomer } from '../../hooks/useCustomers.js';
-import { Button } from '../../components/ui/Button.jsx';
-import { PageHeader } from '../../components/shared/PageHeader.jsx';
-import { Badge } from '../../components/ui/Badge.jsx';
-import { StatCard } from '../../components/ui/StatCard.jsx';
-import { Modal } from '../../components/ui/Modal.jsx';
-import CustomerForm from './CustomerForm.jsx';
-import { Mail, Pencil, Phone, Plus, ShoppingBag, Trash2, UserCheck, Users, UserX } from 'lucide-react'
+import React, { useState } from "react";
+import {
+  useCustomer,
+  useCustomers,
+  useDeleteCustomer,
+} from "../../hooks/useCustomers.js";
+import { Button } from "../../components/ui/Button.jsx";
+import { PageHeader } from "../../components/shared/PageHeader.jsx";
+import { Badge } from "../../components/ui/Badge.jsx";
+import { StatCard } from "../../components/ui/StatCard.jsx";
+import { Modal } from "../../components/ui/Modal.jsx";
+import CustomerForm from "./CustomerForm.jsx";
+import {
+  Mail,
+  Pencil,
+  Phone,
+  Plus,
+  ShoppingBag,
+  Trash2,
+  UserCheck,
+  Users,
+  UserX,
+} from "lucide-react";
 
 export default function CustomerPage() {
-
   const { data: customers = [], isLoading } = useCustomers();
   const deleteMutation = useDeleteCustomer();
 
   const [modalOpen, setModelOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [deleteError, setDeleteError] = useState('');
+  const [deleteError, setDeleteError] = useState("");
   const [expandedId, setExpandedId] = useState(null);
 
-  const { data: expandedCustomer, isLoading: loadingExpanded } = useCustomer(expandedId);
+  const { data: expandedCustomer, isLoading: loadingExpanded } =
+    useCustomer(expandedId);
 
-  const handleEdit = (customer) => { setEditing(customer); setModelOpen(true); };
-  const handleClose = () => {setEditing(null); setModelOpen(false); };
+  const handleEdit = (customer) => {
+    setEditing(customer);
+    setModelOpen(true);
+  };
+  const handleClose = () => {
+    setEditing(null);
+    setModelOpen(false);
+  };
 
-  const handleDelete = async (id) => {
-    setDeleteError('');
+  const handleDelete = async (id, name) => {
+    setDeleteError("");
+    if (
+      !window.confirm(
+        `Delete customer "${name}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
+    }
     try {
       await deleteMutation.mutateAsync(id);
-    }catch(errr) {
+    } catch (errr) {
       setDeleteError(
-        errr.response?.data?.error || 'failed to delete customer.'
+        errr.response?.data?.error || "failed to delete customer.",
       );
     }
   };
 
-  const toggleExpand = (id) => 
-    setExpandedId(prev => prev === id ? null : id);
+  const toggleExpand = (id) =>
+    setExpandedId((prev) => (prev === id ? null : id));
 
   if (isLoading) return <div className="text-sm text-gray-500">Loading...</div>;
 
-  const activeCustomers = customers.filter(c => c.is_active);
-  const inactiveCustomers = customers.filter(c => !c.is_active);
-  const totalDispatches = customers.reduce((sum, c) => sum + parseInt(c.total_dispatches || 0), 0)
+  const activeCustomers = customers.filter((c) => c.is_active);
+  const inactiveCustomers = customers.filter((c) => !c.is_active);
+  const totalDispatches = customers.reduce(
+    (sum, c) => sum + parseInt(c.total_dispatches || 0),
+    0,
+  );
 
   return (
     <div>
@@ -49,9 +79,7 @@ export default function CustomerPage() {
         title="Customer Management"
         subtitle="Manage your dispatch recipients"
         action={
-          <Button
-            onClick={() => setModelOpen(true)}
-          >
+          <Button onClick={() => setModelOpen(true)}>
             <Plus size={16} className="mr-1" /> Add Customer
           </Button>
         }
@@ -61,7 +89,7 @@ export default function CustomerPage() {
         <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm flex items-center gap-2">
           <span>{deleteError}</span>
           <button
-            onClick={() => setDeleteError('')}
+            onClick={() => setDeleteError("")}
             className="ml-auto text-red-400 hover:text-red-600"
           >
             X
@@ -101,15 +129,25 @@ export default function CustomerPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {['Customer', 'Contact', 'Dispatches', 'Units Received', 'States', ''].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+              {[
+                "Customer",
+                "Contact",
+                "Dispatches",
+                "Units Received",
+                "States",
+                "",
+              ].map((h) => (
+                <th
+                  key={h}
+                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
+                >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {customers.map(c => (
+            {customers.map((c) => (
               <>
                 <tr
                   key={c.id}
@@ -119,7 +157,9 @@ export default function CustomerPage() {
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{c.name}</p>
                     {c.address && (
-                      <p className="text-xs text-gray-400 mt-0.5">{c.address}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {c.address}
+                      </p>
                     )}
                   </td>
 
@@ -150,12 +190,15 @@ export default function CustomerPage() {
                   </td>
 
                   <td>
-                    <Badge color={c.is_active ? 'green' : 'gray'}>
-                      {c.is_active ? 'Active' : 'Inactive'}
+                    <Badge color={c.is_active ? "green" : "gray"}>
+                      {c.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </td>
 
-                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                  <td
+                    className="px-4 py-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEdit(c)}
@@ -164,7 +207,7 @@ export default function CustomerPage() {
                         <Pencil size={15} />
                       </button>
                       <button
-                        onClick={() => handleDelete(c.id)}
+                        onClick={() => handleDelete(c.id, c.name)}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <Trash2 size={15} />
@@ -179,41 +222,56 @@ export default function CustomerPage() {
                       <p className="text-xs font-semibold text-blue-700 uppercase">
                         Dispatch History
                       </p>
-                      {loadingExpanded
-                        ? <p className="text-xs text-gray-400">Loading.....</p>
-                        : expandedCustomer?.dispatches?.length > 0
-                        ? <div className="overflow-x-auto">
-                            <table className="w-full text-xs">
-                              <thead>
-                                <tr className="text-gray-500">
-                                  <th className="text-left pb-2">Products</th>
-                                  <th className="text-left pb-2">Qty</th>
-                                  <th className="text-left pb-2">Status</th>
-                                  <th className="text-left pb-2">Date</th>
+                      {loadingExpanded ? (
+                        <p className="text-xs text-gray-400">Loading.....</p>
+                      ) : expandedCustomer?.dispatches?.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="text-gray-500">
+                                <th className="text-left pb-2">Products</th>
+                                <th className="text-left pb-2">Qty</th>
+                                <th className="text-left pb-2">Status</th>
+                                <th className="text-left pb-2">Date</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-blue-100">
+                              {expandedCustomer.dispatches.map((d) => (
+                                <tr key={d.id}>
+                                  <td className="py-1.5 text-gray-700">
+                                    {d.product_name}
+                                  </td>
+                                  <td className="py-1.5 text-gray-700">
+                                    {d.quantity_dispatched}
+                                  </td>
+                                  <td className="py-1.5">
+                                    <Badge
+                                      color={
+                                        d.status === "dispatch"
+                                          ? "green"
+                                          : d.status === "pending"
+                                            ? "amber"
+                                            : "red"
+                                      }
+                                    >
+                                      {d.status}
+                                    </Badge>
+                                  </td>
+                                  <td className="py-1.5 text-gray-500">
+                                    {new Date(
+                                      d.dispatched_at,
+                                    ).toLocaleDateString()}
+                                  </td>
                                 </tr>
-                              </thead>
-                              <tbody className="divide-y divide-blue-100">
-                                {expandedCustomer.dispatches.map(d => (
-                                  <tr key={d.id}>
-                                    <td className="py-1.5 text-gray-700">{d.product_name}</td>
-                                    <td className="py-1.5 text-gray-700">{d.quantity_dispatched}</td>
-                                    <td className="py-1.5">
-                                      <Badge color={d.status === 'dispatch' ? 'green' : d.status === 'pending' ? 'amber' : 'red'}>
-                                        {d.status}
-                                      </Badge>
-                                    </td>
-                                    <td className="py-1.5 text-gray-500">
-                                      {new Date(d.dispatched_at).toLocaleDateString()}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        : <p className="text-xs text-gray-400">
-                            No dispatches yet for this customer.
-                          </p>
-                      }
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400">
+                          No dispatches yet for this customer.
+                        </p>
+                      )}
                     </td>
                   </tr>
                 )}
@@ -232,11 +290,10 @@ export default function CustomerPage() {
       <Modal
         open={modalOpen}
         onClose={handleClose}
-        title={editing ? 'Edit Customer' : 'Add Customer'}
+        title={editing ? "Edit Customer" : "Add Customer"}
       >
         <CustomerForm initial={editing} onSuccess={handleClose} />
       </Modal>
-
     </div>
-  )
+  );
 }

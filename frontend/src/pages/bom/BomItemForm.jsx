@@ -46,7 +46,7 @@ export default function BomItemForm({ bom, initial, onSuccess }) {
       }
       onSuccess();
     } catch (err) {
-      console.error("Failed to save ingredient:", err);
+      // error handled via mutation
     }
   };
 

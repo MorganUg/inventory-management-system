@@ -18,7 +18,7 @@ export const useCreateSupplier = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createSupplier,
-    onSuccess: () => queryClient.invalidateQueries(['suppliers']),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['suppliers'] }),
   });
 }
 
@@ -26,7 +26,7 @@ export const useUpdateSupplier = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => updateSupplier(id, data),
-    onSuccess: () => queryClient.invalidateQueries(['suppliers']),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['suppliers'] }),
   });
 };
 
@@ -34,6 +34,6 @@ export const useDeleteSupplier = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteSupplier,
-    onSuccess: () => queryClient.invalidateQueries(['suppliers']),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['suppliers'] }),
   });
 };

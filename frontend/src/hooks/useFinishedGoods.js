@@ -18,7 +18,7 @@ export const useCreateFinishedGood = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createFinishedGood,
-    onSuccess: () => queryClient.invalidateQueries(['finishedGoods'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['finishedGoods'] })
   });
 };
 
@@ -26,7 +26,7 @@ export const useUpdateFinishedGood = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => updateFinishedGood(id, data),
-    onSuccess: () => queryClient.invalidateQueries(['finishedGoods'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['finishedGoods'] })
   });
 };
 
@@ -34,6 +34,6 @@ export const useDeleteFinishedGood = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteFinishedGood,
-    onSuccess: () => queryClient.invalidateQueries(['finishedGoods'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['finishedGoods'] })
   });
 };

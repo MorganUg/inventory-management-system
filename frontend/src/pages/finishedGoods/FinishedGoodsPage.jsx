@@ -37,8 +37,15 @@ export default function FinishedGoodsPage() {
     setModalOpen(false);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, name) => {
     setDeleteError("");
+    if (
+      !window.confirm(
+        `Delete finished good "${name}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
+    }
     try {
       await deleteMutation.mutateAsync(id);
     } catch (err) {
@@ -253,7 +260,7 @@ export default function FinishedGoodsPage() {
                         <Pencil size={15} />
                       </button>
                       <button
-                        onClick={() => handleDelete(g.id)}
+                        onClick={() => handleDelete(g.id, g.name)}
                         disabled={parseFloat(g.quantity_in_stock) > 0}
                         className="text-gray-400 hover:text-red-500
                     transition-colors disabled:opacity-30

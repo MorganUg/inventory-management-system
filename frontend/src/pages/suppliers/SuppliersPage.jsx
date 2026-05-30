@@ -1,44 +1,70 @@
-import { useState } from 'react';
-import { useSuppliers, useDeleteSupplier, useSupplier } from '../../hooks/useSuppliers.js';
-import { PageHeader } from '../../components/shared/PageHeader.jsx';
-import { StatCard } from '../../components/ui/StatCard.jsx'
-import { Button } from '../../components/ui/Button.jsx';
-import { Badge } from '../../components/ui/Badge.jsx';
-import { Modal } from '../../components/ui/Modal.jsx';
-import SupplierForm from './SupplierForm.jsx';
-import { Plus, Pencil, Trash2, Phone, Mail, Package, Truck, ToggleRight, ToggleLeft } from 'lucide-react';
+import { useState } from "react";
+import {
+  useSuppliers,
+  useDeleteSupplier,
+  useSupplier,
+} from "../../hooks/useSuppliers.js";
+import { PageHeader } from "../../components/shared/PageHeader.jsx";
+import { StatCard } from "../../components/ui/StatCard.jsx";
+import { Button } from "../../components/ui/Button.jsx";
+import { Badge } from "../../components/ui/Badge.jsx";
+import { Modal } from "../../components/ui/Modal.jsx";
+import SupplierForm from "./SupplierForm.jsx";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Phone,
+  Mail,
+  Package,
+  Truck,
+  ToggleRight,
+  ToggleLeft,
+} from "lucide-react";
 
 export default function SuppliersPage() {
   const { data: suppliers = [], isLoading } = useSuppliers();
   const deleteMutation = useDeleteSupplier();
 
-  const [modalOpen, setModalOpen]     = useState(false);
-  const [editing, setEditing]         = useState(null);
-  const [deleteError, setDeleteError] = useState('');
-  const [expandedId, setExpandedId]   = useState(null);
-  const { data: expandedSupplier, isLoading: loadingExpanded } = useSupplier(expandedId);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [expandedId, setExpandedId] = useState(null);
+  const { data: expandedSupplier, isLoading: loadingExpanded } =
+    useSupplier(expandedId);
 
-  const handleEdit  = (supplier) => { setEditing(supplier); setModalOpen(true); };
-  const handleClose = ()         => { setEditing(null); setModalOpen(false); };
+  const handleEdit = (supplier) => {
+    setEditing(supplier);
+    setModalOpen(true);
+  };
+  const handleClose = () => {
+    setEditing(null);
+    setModalOpen(false);
+  };
 
-  const handleDelete = async (id) => {
-  setDeleteError('');
-  try {
-  await deleteMutation.mutateAsync(id);
-  } catch (err) {
-  setDeleteError(
-  err.response?.data?.error || 'Failed to delete supplier.'
-  );
-  }
+  const handleDelete = async (id, name) => {
+    setDeleteError("");
+    if (
+      !window.confirm(
+        `Delete supplier "${name}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await deleteMutation.mutateAsync(id);
+    } catch (err) {
+      setDeleteError(err.response?.data?.error || "Failed to delete supplier.");
+    }
   };
 
   const toggleExpand = (id) =>
-  setExpandedId(prev => prev === id ? null : id);
+    setExpandedId((prev) => (prev === id ? null : id));
 
   if (isLoading) return <div className="text-sm text-gray-500">Loading...</div>;
 
-  const activeSuppliers   = suppliers.filter(s => s.is_active);
-  const inactiveSuppliers = suppliers.filter(s => !s.is_active);
+  const activeSuppliers = suppliers.filter((s) => s.is_active);
+  const inactiveSuppliers = suppliers.filter((s) => !s.is_active);
 
   return (
     <div>
@@ -54,37 +80,39 @@ export default function SuppliersPage() {
 
       {/* Delete error */}
       {deleteError && (
-      <div className="mb-4 bg-red-50 border border-red-200 text-red-700
-      rounded-lg px-4 py-3 text-sm flex items-center gap-2">
-        <span>{deleteError}</span>
-        <button
-        onClick={() => setDeleteError('')}
-        className="ml-auto text-red-400 hover:text-red-600"
+        <div
+          className="mb-4 bg-red-50 border border-red-200 text-red-700
+      rounded-lg px-4 py-3 text-sm flex items-center gap-2"
         >
-          ✕
-        </button>
-      </div>
+          <span>{deleteError}</span>
+          <button
+            onClick={() => setDeleteError("")}
+            className="ml-auto text-red-400 hover:text-red-600"
+          >
+            ✕
+          </button>
+        </div>
       )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <StatCard 
+        <StatCard
           label="Total Suppliers"
           value={suppliers.length}
           icon={Truck}
-          color='amber'
+          color="amber"
         />
-        <StatCard 
+        <StatCard
           label="Active"
           value={activeSuppliers.length}
           icon={ToggleRight}
-          color='green'
+          color="green"
         />
-        <StatCard 
+        <StatCard
           label="Inactive"
           value={inactiveSuppliers.length}
           icon={ToggleLeft}
-          color='red'
+          color="red"
         />
       </div>
 
@@ -93,15 +121,25 @@ export default function SuppliersPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {['Supplier', 'Contact', 'Materials', 'Restocks', 'Status', 'Actions'].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                {h}
+              {[
+                "Supplier",
+                "Contact",
+                "Materials",
+                "Restocks",
+                "Status",
+                "Actions",
+              ].map((h) => (
+                <th
+                  key={h}
+                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
+                >
+                  {h}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {suppliers.map(s => (
+            {suppliers.map((s) => (
               <>
                 <tr
                   key={s.id}
@@ -112,7 +150,9 @@ export default function SuppliersPage() {
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{s.name}</p>
                     {s.address && (
-                      <p className="text-xs text-gray-400 mt-0.5">{s.address}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {s.address}
+                      </p>
                     )}
                   </td>
 
@@ -129,7 +169,7 @@ export default function SuppliersPage() {
                       )}
                       {s.email && (
                         <p className="flex items-center gap-1 text-xs text-gray-400">
-                        <Mail size={11} /> {s.email}
+                          <Mail size={11} /> {s.email}
                         </p>
                       )}
                     </div>
@@ -150,13 +190,16 @@ export default function SuppliersPage() {
 
                   {/* Status */}
                   <td className="px-4 py-3">
-                    <Badge color={s.is_active ? 'green' : 'gray'}>
-                      {s.is_active ? 'Active' : 'Inactive'}
+                    <Badge color={s.is_active ? "green" : "gray"}>
+                      {s.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </td>
 
                   {/* Actions */}
-                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                  <td
+                    className="px-4 py-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEdit(s)}
@@ -165,7 +208,7 @@ export default function SuppliersPage() {
                         <Pencil size={15} />
                       </button>
                       <button
-                        onClick={() => handleDelete(s.id)}
+                        onClick={() => handleDelete(s.id, s.name)}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <Trash2 size={15} />
@@ -176,16 +219,16 @@ export default function SuppliersPage() {
 
                 {/* Expanded row — shows materials linked to supplier */}
                 {expandedId === s.id && (
-                <tr key={`${s.id}-expanded`} className="bg-amber-50">
-                  <td colSpan={6} className="px-6 py-4">
-                    <p className="text-xs font-semibold text-amber-700  uppercase mb-2">
-                      Materials Supplied
-                    </p>
-                    {loadingExpanded 
-                      ? <p className="text-xs text-gray-400">Loading...</p>
-                      : expandedSupplier?.materials?.length > 0  
-                        ? <div className="flex flex-wrap gap-2">
-                          {expandedSupplier.materials.map(m => (
+                  <tr key={`${s.id}-expanded`} className="bg-amber-50">
+                    <td colSpan={6} className="px-6 py-4">
+                      <p className="text-xs font-semibold text-amber-700  uppercase mb-2">
+                        Materials Supplied
+                      </p>
+                      {loadingExpanded ? (
+                        <p className="text-xs text-gray-400">Loading...</p>
+                      ) : expandedSupplier?.materials?.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {expandedSupplier.materials.map((m) => (
                             <span
                               key={m.id}
                               className="px-2 py-1 bg-white border border-amber-200
@@ -193,14 +236,15 @@ export default function SuppliersPage() {
                             >
                               {m.name} — {m.quantity_in_stock} {m.unit}
                             </span>
-                        ))}
-                          </div>
-                        : <p className="text-xs text-gray-400">
-                            No materials linked yet.
-                          </p>
-                    }
-                  </td>
-                </tr>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400">
+                          No materials linked yet.
+                        </p>
+                      )}
+                    </td>
+                  </tr>
                 )}
               </>
             ))}
@@ -217,7 +261,7 @@ export default function SuppliersPage() {
       <Modal
         open={modalOpen}
         onClose={handleClose}
-        title={editing ? 'Edit Supplier' : 'Add Supplier'}
+        title={editing ? "Edit Supplier" : "Add Supplier"}
       >
         <SupplierForm initial={editing} onSuccess={handleClose} />
       </Modal>

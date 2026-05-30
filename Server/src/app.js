@@ -16,6 +16,7 @@ import finishedGoodRoutes from './routes/finishedGoods.routes.js';
 import dispatchRoutes from './routes/dispatches.routes.js';
 import stockMovementRoutes from './routes/stockMovements.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import reportsRoutes from './routes/reports.routes.js';
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use('/api/batches',        batchRoutes);
 app.use('/api/finished-goods', finishedGoodRoutes);
 app.use('/api/dispatches',     dispatchRoutes);
 app.use('/api/stock-movements',stockMovementRoutes);
+app.use('/api/reports',        reportsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
