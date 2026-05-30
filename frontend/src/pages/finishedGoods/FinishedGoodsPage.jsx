@@ -8,6 +8,7 @@ import { Button } from "../../components/ui/Button.jsx";
 import { Badge } from "../../components/ui/Badge.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
 import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
+import ExportMenu from "../../components/shared/ExportMenu";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import FinishedGoodForm from "./FinishedGoodForm.jsx";
 import {
@@ -90,9 +91,16 @@ export default function FinishedGoodsPage() {
         title="Finished Goods"
         subtitle="Products ready for dispatch"
         action={
-          <Button onClick={() => setModalOpen(true)}>
-            <Plus size={16} className="mr-1" /> Add Product
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setModalOpen(true)}>
+              <Plus size={16} className="mr-1" /> Add Product
+            </Button>
+            <ExportMenu
+              data={goods}
+              filename="finished_goods"
+              title="Finished Goods"
+            />
+          </div>
         }
       />
 
@@ -174,113 +182,115 @@ export default function FinishedGoodsPage() {
 
       {/* Products Table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {[
-                "Product",
-                "Category",
-                "Unit",
-                "In Stock",
-                "Price/Unit",
-                "Stock Value",
-                "Shelf Life",
-                "Status",
-                "",
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="text-left px-4 py-3 text-xs font-medium
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {[
+                  "Product",
+                  "Category",
+                  "Unit",
+                  "In Stock",
+                  "Price/Unit",
+                  "Stock Value",
+                  "Shelf Life",
+                  "Status",
+                  "",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="text-left px-4 py-3 text-xs font-medium
               text-gray-500 uppercase"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map((g) => {
-              const badge = getStockBadge(parseFloat(g.quantity_in_stock));
-              const stockValue =
-                parseFloat(g.quantity_in_stock || 0) *
-                parseFloat(g.price_per_unit || 0);
-              return (
-                <tr key={g.id} className="hover:bg-gray-50">
-                  {/* Name */}
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {g.name}
-                  </td>
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((g) => {
+                const badge = getStockBadge(parseFloat(g.quantity_in_stock));
+                const stockValue =
+                  parseFloat(g.quantity_in_stock || 0) *
+                  parseFloat(g.price_per_unit || 0);
+                return (
+                  <tr key={g.id} className="hover:bg-gray-50">
+                    {/* Name */}
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {g.name}
+                    </td>
 
-                  {/* Category */}
-                  <td className="px-4 py-3 text-gray-500">
-                    {g.category || "—"}
-                  </td>
+                    {/* Category */}
+                    <td className="px-4 py-3 text-gray-500">
+                      {g.category || "—"}
+                    </td>
 
-                  {/* Unit */}
-                  <td className="px-4 py-3 text-gray-500">{g.unit}</td>
+                    {/* Unit */}
+                    <td className="px-4 py-3 text-gray-500">{g.unit}</td>
 
-                  {/* Qty in stock */}
-                  <td className="px-4 py-3 font-medium">
-                    {parseFloat(g.quantity_in_stock).toLocaleString()}
-                  </td>
+                    {/* Qty in stock */}
+                    <td className="px-4 py-3 font-medium">
+                      {parseFloat(g.quantity_in_stock).toLocaleString()}
+                    </td>
 
-                  {/* Price per unit */}
-                  <td className="px-4 py-3 text-gray-600">
-                    {g.price_per_unit
-                      ? `UGX ${parseFloat(g.price_per_unit).toLocaleString()}`
-                      : "—"}
-                  </td>
+                    {/* Price per unit */}
+                    <td className="px-4 py-3 text-gray-600">
+                      {g.price_per_unit
+                        ? `UGX ${parseFloat(g.price_per_unit).toLocaleString()}`
+                        : "—"}
+                    </td>
 
-                  {/* Stock value */}
-                  <td className="px-4 py-3 text-gray-700 font-medium">
-                    {stockValue > 0
-                      ? `UGX ${stockValue.toLocaleString()}`
-                      : "—"}
-                  </td>
+                    {/* Stock value */}
+                    <td className="px-4 py-3 text-gray-700 font-medium">
+                      {stockValue > 0
+                        ? `UGX ${stockValue.toLocaleString()}`
+                        : "—"}
+                    </td>
 
-                  {/* Shelf life */}
-                  <td className="px-4 py-3 text-gray-500">
-                    {g.expiry_duration_days
-                      ? `${g.expiry_duration_days} days`
-                      : "—"}
-                  </td>
+                    {/* Shelf life */}
+                    <td className="px-4 py-3 text-gray-500">
+                      {g.expiry_duration_days
+                        ? `${g.expiry_duration_days} days`
+                        : "—"}
+                    </td>
 
-                  {/* Status badge */}
-                  <td className="px-4 py-3">
-                    <Badge color={badge.color}>{badge.label}</Badge>
-                  </td>
+                    {/* Status badge */}
+                    <td className="px-4 py-3">
+                      <Badge color={badge.color}>{badge.label}</Badge>
+                    </td>
 
-                  {/* Actions */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(g)}
-                        className="text-gray-400 hover:text-amber-500
+                    {/* Actions */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEdit(g)}
+                          className="text-gray-400 hover:text-amber-500
                     transition-colors"
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(g.id, g.name)}
-                        disabled={parseFloat(g.quantity_in_stock) > 0}
-                        className="text-gray-400 hover:text-red-500
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(g.id, g.name)}
+                          disabled={parseFloat(g.quantity_in_stock) > 0}
+                          className="text-gray-400 hover:text-red-500
                     transition-colors disabled:opacity-30
                     disabled:cursor-not-allowed"
-                        title={
-                          parseFloat(g.quantity_in_stock) > 0
-                            ? "Cannot delete — stock remaining"
-                            : "Delete product"
-                        }
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                          title={
+                            parseFloat(g.quantity_in_stock) > 0
+                              ? "Cannot delete — stock remaining"
+                              : "Delete product"
+                          }
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
         {filtered.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-10">

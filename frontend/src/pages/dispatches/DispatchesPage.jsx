@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/Button.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import DispatchForm from "./DispatchForm.jsx";
+import ExportMenu from "../../components/shared/ExportMenu";
 import {
   Plus,
   ArrowUpCircle,
@@ -64,9 +65,16 @@ export default function DispatchesPage() {
         title="Dispatches"
         subtitle="Track outgoing finished goods to customers"
         action={
-          <Button onClick={() => setModalOpen(true)}>
-            <Plus size={16} className="mr-1" /> New Dispatch
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setModalOpen(true)}>
+              <Plus size={16} className="mr-1" /> New Dispatch
+            </Button>
+            <ExportMenu
+              data={dispatches}
+              filename="dispatches"
+              title="Dispatches"
+            />
+          </div>
         }
       />
 

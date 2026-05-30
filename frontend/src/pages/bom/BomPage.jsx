@@ -14,6 +14,7 @@ import { StatCard } from "../../components/ui/StatCard.jsx";
 import BomForm from "./BomForm.jsx";
 import BomItemForm from "./BomItemForm.jsx";
 import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
+import ExportMenu from "../../components/shared/ExportMenu";
 import {
   Plus,
   BookOpen,
@@ -91,9 +92,16 @@ export default function BomPage() {
         title="Bill of Materials"
         subtitle="Define production recipes for your finished goods"
         action={
-          <Button onClick={() => setBomModalOpen(true)}>
-            <Plus size={16} className="mr-1" /> New BOM
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setBomModalOpen(true)}>
+              <Plus size={16} className="mr-1" /> New BOM
+            </Button>
+            <ExportMenu
+              data={boms}
+              filename="bill_of_materials"
+              title="Bill of Materials"
+            />
+          </div>
         }
       />
 
@@ -204,69 +212,71 @@ export default function BomPage() {
                     Loading ingredients...
                   </p>
                 ) : expandedBom?.items?.length > 0 ? (
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        {[
-                          "Ingredient",
-                          "Qty per unit",
-                          "Unit",
-                          "Notes",
-                          "",
-                        ].map((h) => (
-                          <th
-                            key={h}
-                            className="text-left px-5 py-2 text-xs
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[500px]">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {[
+                            "Ingredient",
+                            "Qty per unit",
+                            "Unit",
+                            "Notes",
+                            "",
+                          ].map((h) => (
+                            <th
+                              key={h}
+                              className="text-left px-5 py-2 text-xs
                                     font-medium text-gray-500 uppercase"
-                          >
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {expandedBom.items.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-5 py-3 font-medium">
-                            {item.material_name}
-                          </td>
-                          <td className="px-5 py-3 text-gray-600">
-                            {item.quantity_per_unit}
-                          </td>
-                          <td className="px-5 py-3 text-gray-500">
-                            {item.unit}
-                          </td>
-                          <td className="px-5 py-3 text-gray-400 text-xs">
-                            {item.notes || "—"}
-                          </td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() =>
-                                  handleEditItem(expandedBom, item)
-                                }
-                                className="text-gray-400 hover:text-amber-500 transition-colors"
-                              >
-                                <Pencil size={14} />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteItem(
-                                    expandedBom.id,
-                                    item.id,
-                                    item.material_name,
-                                  )
-                                }
-                                className="text-gray-400 hover:text-red-500 transition-colors"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </td>
+                            >
+                              {h}
+                            </th>
+                          ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {expandedBom.items.map((item) => (
+                          <tr key={item.id} className="hover:bg-gray-50">
+                            <td className="px-5 py-3 font-medium">
+                              {item.material_name}
+                            </td>
+                            <td className="px-5 py-3 text-gray-600">
+                              {item.quantity_per_unit}
+                            </td>
+                            <td className="px-5 py-3 text-gray-500">
+                              {item.unit}
+                            </td>
+                            <td className="px-5 py-3 text-gray-400 text-xs">
+                              {item.notes || "—"}
+                            </td>
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() =>
+                                    handleEditItem(expandedBom, item)
+                                  }
+                                  className="text-gray-400 hover:text-amber-500 transition-colors"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDeleteItem(
+                                      expandedBom.id,
+                                      item.id,
+                                      item.material_name,
+                                    )
+                                  }
+                                  className="text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : (
                   <p className="text-sm text-gray-400 text-center py-6">
                     No ingredients yet. Add the first ingredient.
@@ -316,6 +326,22 @@ export default function BomPage() {
           />
         )}
       </Modal>
+
+      {/* Confirm Delete Ingredient */}
+      <ConfirmDialog
+        open={!!confirmDeleteItem}
+        onClose={() => setConfirmDeleteItem(null)}
+        onConfirm={confirmDeleteIngredient}
+        title="Remove Ingredient"
+        message={
+          confirmDeleteItem
+            ? `Remove "${confirmDeleteItem.materialName}" from this BOM? This cannot be undone.`
+            : ""
+        }
+        confirmText="Remove"
+        variant="danger"
+        loading={deleteItemMutation.isPending}
+      />
     </div>
   );
 }

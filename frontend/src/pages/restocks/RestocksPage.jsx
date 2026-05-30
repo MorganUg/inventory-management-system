@@ -5,6 +5,7 @@ import { StatCard } from '../../components/ui/StatCard.jsx';
 import { useRestocks } from '../../hooks/useRestocks.js';
 import { Modal } from '../../components/ui/Modal.jsx';
 import RestockForm from './RestockForm.jsx'; 
+import ExportMenu from '../../components/shared/ExportMenu';
 import { ArrowDownCircle, Calendar, DollarSign, Package, Plus, Truck } from 'lucide-react';
 
 export default function RestocksPage() {
@@ -28,9 +29,16 @@ export default function RestocksPage() {
         title="Restock Management"
         subtitle="Record raw material purchase from suppliers"
         action={
-          <Button onClick={() => setModalOpen(true)}>
-            <Plus size={16} className="mr-1" /> Record Restock
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setModalOpen(true)}>
+              <Plus size={16} className="mr-1" /> Record Restock
+            </Button>
+            <ExportMenu
+              data={restocks}
+              filename="restocks"
+              title="Restocks"
+            />
+          </div>
         }
       />
 

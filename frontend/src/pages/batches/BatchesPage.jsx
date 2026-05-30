@@ -7,6 +7,7 @@ import { Badge } from "../../components/ui/Badge.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import BatchForm from "./BatchForm.jsx";
+import ExportMenu from "../../components/shared/ExportMenu";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -57,9 +58,16 @@ export default function BatchesPage() {
         title="Production Batches"
         subtitle="Manage your manufacturing runs"
         action={
-          <Button onClick={() => setModalOpen(true)}>
-            <Plus size={16} className="mr-1" /> New Batch
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setModalOpen(true)}>
+              <Plus size={16} className="mr-1" /> New Batch
+            </Button>
+            <ExportMenu
+              data={filtered}
+              filename="production_batches"
+              title="Production Batches"
+            />
+          </div>
         }
       />
 

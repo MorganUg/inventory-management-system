@@ -288,31 +288,35 @@ export default function BatchDetailPage() {
             </span>
           </div>
           {batch.materials && batch.materials.length > 0 ? (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  {["Material", "Qty used", "Unit"].map((h) => (
-                    <th
-                      key={h}
-                      className="text-left px-5 py-2 text-xs font-medium text-gray-500 uppercase"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {batch.materials.map((m) => (
-                  <tr key={m.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-medium">{m.material_name}</td>
-                    <td className="px-5 py-3 text-red-500 font-medium">
-                      −{m.quantity_used}
-                    </td>
-                    <td className="px-5 py-3 text-gray-500">{m.unit}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[500px]">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    {["Material", "Qty used", "Unit"].map((h) => (
+                      <th
+                        key={h}
+                        className="text-left px-5 py-2 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {batch.materials.map((m) => (
+                    <tr key={m.id} className="hover:bg-gray-50">
+                      <td className="px-5 py-3 font-medium">
+                        {m.material_name}
+                      </td>
+                      <td className="px-5 py-3 text-red-500 font-medium">
+                        −{m.quantity_used}
+                      </td>
+                      <td className="px-5 py-3 text-gray-500">{m.unit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <p className="text-sm text-gray-400 text-center py-6">
               No materials assigned yet. This batch has no active BOM materials
@@ -331,46 +335,48 @@ export default function BatchDetailPage() {
             </span>
           </div>
           {batch.outputs && batch.outputs.length > 0 ? (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  {["Product", "Expected", "Actual", "Expiry"].map((h) => (
-                    <th
-                      key={h}
-                      className="text-left px-5 py-2 text-xs font-medium text-gray-500 uppercase"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {batch.outputs.map((o) => (
-                  <tr key={o.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-medium">
-                      {o.finished_good_name}
-                    </td>
-                    <td className="px-5 py-3 text-gray-500">
-                      {o.expected_quantity || "—"}
-                    </td>
-                    <td className="px-5 py-3">
-                      {o.actual_quantity ? (
-                        <span className="text-green-600 font-medium">
-                          {o.actual_quantity}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-gray-500">
-                      {o.expiry_date
-                        ? new Date(o.expiry_date).toLocaleDateString()
-                        : "—"}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[500px]">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    {["Product", "Expected", "Actual", "Expiry"].map((h) => (
+                      <th
+                        key={h}
+                        className="text-left px-5 py-2 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {batch.outputs.map((o) => (
+                    <tr key={o.id} className="hover:bg-gray-50">
+                      <td className="px-5 py-3 font-medium">
+                        {o.finished_good_name}
+                      </td>
+                      <td className="px-5 py-3 text-gray-500">
+                        {o.expected_quantity || "—"}
+                      </td>
+                      <td className="px-5 py-3">
+                        {o.actual_quantity ? (
+                          <span className="text-green-600 font-medium">
+                            {o.actual_quantity}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-gray-500">
+                        {o.expiry_date
+                          ? new Date(o.expiry_date).toLocaleDateString()
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <p className="text-sm text-gray-400 text-center py-6">
               No outputs defined yet.

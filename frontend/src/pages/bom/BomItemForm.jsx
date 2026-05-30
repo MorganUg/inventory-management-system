@@ -93,7 +93,7 @@ export default function BomItemForm({ bom, initial, onSuccess }) {
       </div>
 
       {/* Quantity per unit + Unit side by side */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-sm font-medium text-gray-700">
             Qty per unit <span className="text-red-500">*</span>

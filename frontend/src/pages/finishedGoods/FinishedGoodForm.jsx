@@ -55,6 +55,7 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
       // error displayed in UI
     }
   };
+  ive;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -96,7 +97,7 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
       </div>
 
       {/* Price + Expiry side by side */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-sm font-medium text-gray-700">
             Price Per Unit (UGX)

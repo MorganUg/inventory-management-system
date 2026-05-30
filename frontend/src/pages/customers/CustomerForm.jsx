@@ -76,7 +76,7 @@ export default function CustomerForm({ initial, onSuccess }) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-sm font-medium text-gray-700">Phone</label>
           <input

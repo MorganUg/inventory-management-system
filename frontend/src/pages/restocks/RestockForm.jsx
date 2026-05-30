@@ -94,7 +94,7 @@ export default function RestockForm({ onSuccess }) {
       </div>
 
       {/* Quantity and Cost */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-sm font-medium text-gray-700">
             Quantity Recieved <span className="text-red-500">*</span>

@@ -12,6 +12,7 @@ import {
 } from "../../hooks/useReports.js";
 import { PageHeader } from "../../components/shared/PageHeader.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
+import ExportMenu from "../../components/shared/ExportMenu";
 import {
   BarChart,
   Bar,
@@ -30,27 +31,7 @@ import {
   Truck,
   FlaskConical,
   Calendar,
-  Download,
 } from "lucide-react";
-
-// CSV Export helper
-const exportCSV = (data, filename) => {
-  if (!data || data.length === 0) return;
-  const headers = Object.keys(data[0]).join(",");
-  const rows = data.map((row) =>
-    Object.values(row)
-      .map((v) => (typeof v === "string" && v.includes(",") ? `"${v}"` : v))
-      .join(","),
-  );
-  const csv = [headers, ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${filename}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
 
 // Section wrapper
 const Section = ({
@@ -58,21 +39,16 @@ const Section = ({
   icon: Icon,
   color = "text-amber-500",
   children,
-  onExport,
   data,
+  filename,
 }) => (
   <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div className="flex items-center gap-2 px-5 py-4 border-b bg-gray-50">
       <Icon size={16} className={color} />
       <h2 className="font-semibold text-gray-800">{title}</h2>
-      {onExport && data && data.length > 0 && (
-        <button
-          onClick={onExport}
-          className="ml-auto flex items-center gap-1.5 text-xs text-gray-500 hover:text-amber-600 transition-colors"
-        >
-          <Download size={13} /> Export CSV
-        </button>
-      )}
+      <div className="ml-auto">
+        <ExportMenu data={data} filename={filename} title={title} />
+      </div>
     </div>
     <div className="p-5">{children}</div>
   </div>
@@ -385,10 +361,8 @@ export default function ReportsPage() {
           <Section
             title="Production batches"
             icon={BarChart2}
-            onExport={() =>
-              exportCSV(productionData?.batches, "production_report")
-            }
             data={productionData?.batches}
+            filename="production_report"
           >
             <table className="w-full text-sm">
               <thead className="border-b">
@@ -510,10 +484,8 @@ export default function ReportsPage() {
             title="Raw materials stock"
             icon={FlaskConical}
             color="text-purple-500"
-            onExport={() =>
-              exportCSV(stockData?.raw_materials, "raw_materials_stock")
-            }
             data={stockData?.raw_materials}
+            filename="raw_materials_stock"
           >
             <table className="w-full text-sm">
               <thead className="border-b">
@@ -579,10 +551,8 @@ export default function ReportsPage() {
             title="Finished goods stock"
             icon={Package}
             color="text-green-500"
-            onExport={() =>
-              exportCSV(stockData?.finished_goods, "finished_goods_stock")
-            }
             data={stockData?.finished_goods}
+            filename="finished_goods_stock"
           >
             <table className="w-full text-sm">
               <thead className="border-b">
@@ -743,10 +713,8 @@ export default function ReportsPage() {
           <Section
             title="Full dispatch log"
             icon={Truck}
-            onExport={() =>
-              exportCSV(dispatchData?.dispatches, "dispatch_report")
-            }
             data={dispatchData?.dispatches}
+            filename="dispatch_report"
           >
             <table className="w-full text-sm">
               <thead className="border-b">
@@ -820,10 +788,8 @@ export default function ReportsPage() {
             title="Raw material consumption"
             icon={FlaskConical}
             color="text-purple-500"
-            onExport={() =>
-              exportCSV(consumptionData?.consumption, "consumption_report")
-            }
             data={consumptionData?.consumption}
+            filename="consumption_report"
           >
             <table className="w-full text-sm">
               <thead className="border-b">

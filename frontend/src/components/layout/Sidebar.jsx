@@ -149,18 +149,16 @@ export const Sidebar = () => {
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
-      <div className="p-5 md:p-5 p-2 border-b border-gray-200">
-        <div className="flex items-center gap-2 justify-center md:justify-start">
-          <div className="md:w-10 md:h-10 bg-amber-500 rounded-lg shadow-sm flex items-center justify-center">
-            {/* <span className="text-white font-semibold text-xs md:text-sm tracking-wide">CK</span> */}
-            {/* <Candy size={20} className="text-white md:size-20" /> */}
+      <div className="p-5 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-amber-500 rounded-lg shadow-sm flex items-center justify-center flex-shrink-0">
             <img
               src={Logo}
               alt="CK Logo"
-              className="md:w-10 md:h-10 object-contain"
+              className="w-10 h-10 object-contain"
             />
           </div>
-          <div className="hidden md:block">
+          <div>
             <p className="font-bold text-gray-900 text-sm">Candy Kingdom</p>
             <p className="text-xs text-gray-400">Inventory Management System</p>
           </div>
@@ -192,7 +190,7 @@ export const Sidebar = () => {
                   }
                 >
                   <Icon size={16} />
-                  <span className="hidden md:inline">{label}</span>
+                  <span>{label}</span>
                 </NavLink>
               ))}
             </div>

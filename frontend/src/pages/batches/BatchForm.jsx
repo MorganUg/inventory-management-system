@@ -75,7 +75,7 @@ export default function BatchForm({ onSuccess }) {
       </div>
 
       {/* Expected yield + Start date */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-sm font-medium text-gray-700">
             Expected Yield

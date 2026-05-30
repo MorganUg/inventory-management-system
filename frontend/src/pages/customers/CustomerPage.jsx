@@ -10,6 +10,7 @@ import { Badge } from "../../components/ui/Badge.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import { Modal } from "../../components/ui/Modal.jsx";
 import ConfirmDialog from "../../components/shared/ConfirmDialog.jsx";
+import ExportMenu from "../../components/shared/ExportMenu";
 import CustomerForm from "./CustomerForm.jsx";
 import {
   Mail,
@@ -80,9 +81,16 @@ export default function CustomerPage() {
         title="Customer Management"
         subtitle="Manage your dispatch recipients"
         action={
-          <Button onClick={() => setModelOpen(true)}>
-            <Plus size={16} className="mr-1" /> Add Customer
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setModelOpen(true)}>
+              <Plus size={16} className="mr-1" /> Add Customer
+            </Button>
+            <ExportMenu
+              data={customers}
+              filename="customers"
+              title="Customers"
+            />
+          </div>
         }
       />
 
@@ -127,159 +135,160 @@ export default function CustomerPage() {
 
       {/* Customer Table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {[
-                "Customer",
-                "Contact",
-                "Dispatches",
-                "Units Received",
-                "States",
-                "",
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {customers.map((c) => (
-              <>
-                <tr
-                  key={c.id}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => toggleExpand(c.id)}
-                >
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-900">{c.name}</p>
-                    {c.address && (
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {c.address}
-                      </p>
-                    )}
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <div className="space-y-0.5">
-                      {c.contact_name && (
-                        <p className="text-gray-700">{c.contact_name}</p>
-                      )}
-                      {c.phone && (
-                        <p className="flex items-center gap-1 text-xs text-gray-400">
-                          <Phone size={11} /> {c.phone}
-                        </p>
-                      )}
-                      {c.email && (
-                        <p className="flex items-center gap-1 text-xs text-gray-400">
-                          <Mail size={11} /> {c.email}
-                        </p>
-                      )}
-                    </div>
-                  </td>
-
-                  <td className="px-4 py-3 text-gray-600">
-                    {c.total_dispatches || 0}
-                  </td>
-
-                  <td className="px-4 py-3 text-gray-600">
-                    {c.total_units_recieved || 0}
-                  </td>
-
-                  <td>
-                    <Badge color={c.is_active ? "green" : "gray"}>
-                      {c.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </td>
-
-                  <td
-                    className="px-4 py-3"
-                    onClick={(e) => e.stopPropagation()}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[650px]">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {[
+                  "Customer",
+                  "Contact",
+                  "Dispatches",
+                  "Units Received",
+                  "States",
+                  "",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
                   >
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(c)}
-                        className="text-gray-400 hover:text-amber-500 transition-colors"
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(c.id, c.name)}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                {expandedId === c.id && (
-                  <tr key={`${c.id}-expanded`} className="bg-blue-50">
-                    <td colSpan={6} className="px-6 py-4">
-                      <p className="text-xs font-semibold text-blue-700 uppercase">
-                        Dispatch History
-                      </p>
-                      {loadingExpanded ? (
-                        <p className="text-xs text-gray-400">Loading.....</p>
-                      ) : expandedCustomer?.dispatches?.length > 0 ? (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-xs">
-                            <thead>
-                              <tr className="text-gray-500">
-                                <th className="text-left pb-2">Products</th>
-                                <th className="text-left pb-2">Qty</th>
-                                <th className="text-left pb-2">Status</th>
-                                <th className="text-left pb-2">Date</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-blue-100">
-                              {expandedCustomer.dispatches.map((d) => (
-                                <tr key={d.id}>
-                                  <td className="py-1.5 text-gray-700">
-                                    {d.product_name}
-                                  </td>
-                                  <td className="py-1.5 text-gray-700">
-                                    {d.quantity_dispatched}
-                                  </td>
-                                  <td className="py-1.5">
-                                    <Badge
-                                      color={
-                                        d.status === "dispatch"
-                                          ? "green"
-                                          : d.status === "pending"
-                                            ? "amber"
-                                            : "red"
-                                      }
-                                    >
-                                      {d.status}
-                                    </Badge>
-                                  </td>
-                                  <td className="py-1.5 text-gray-500">
-                                    {new Date(
-                                      d.dispatched_at,
-                                    ).toLocaleDateString()}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-400">
-                          No dispatches yet for this customer.
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {customers.map((c) => (
+                <React.Fragment key={c.id}>
+                  <tr
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() => toggleExpand(c.id)}
+                  >
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-900">{c.name}</p>
+                      {c.address && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {c.address}
                         </p>
                       )}
                     </td>
+
+                    <td className="px-4 py-3">
+                      <div className="space-y-0.5">
+                        {c.contact_name && (
+                          <p className="text-gray-700">{c.contact_name}</p>
+                        )}
+                        {c.phone && (
+                          <p className="flex items-center gap-1 text-xs text-gray-400">
+                            <Phone size={11} /> {c.phone}
+                          </p>
+                        )}
+                        {c.email && (
+                          <p className="flex items-center gap-1 text-xs text-gray-400">
+                            <Mail size={11} /> {c.email}
+                          </p>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3 text-gray-600">
+                      {c.total_dispatches || 0}
+                    </td>
+
+                    <td className="px-4 py-3 text-gray-600">
+                      {c.total_units_recieved || 0}
+                    </td>
+
+                    <td>
+                      <Badge color={c.is_active ? "green" : "gray"}>
+                        {c.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
+
+                    <td
+                      className="px-4 py-3"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEdit(c)}
+                          className="text-gray-400 hover:text-amber-500 transition-colors"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c.id, c.name)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                )}
-              </>
-            ))}
-          </tbody>
-        </table>
+
+                  {expandedId === c.id && (
+                    <tr key={`${c.id}-expanded`} className="bg-blue-50">
+                      <td colSpan={6} className="px-6 py-4">
+                        <p className="text-xs font-semibold text-blue-700 uppercase">
+                          Dispatch History
+                        </p>
+                        {loadingExpanded ? (
+                          <p className="text-xs text-gray-400">Loading.....</p>
+                        ) : expandedCustomer?.dispatches?.length > 0 ? (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="text-gray-500">
+                                  <th className="text-left pb-2">Products</th>
+                                  <th className="text-left pb-2">Qty</th>
+                                  <th className="text-left pb-2">Status</th>
+                                  <th className="text-left pb-2">Date</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-blue-100">
+                                {expandedCustomer.dispatches.map((d) => (
+                                  <tr key={d.id}>
+                                    <td className="py-1.5 text-gray-700">
+                                      {d.product_name}
+                                    </td>
+                                    <td className="py-1.5 text-gray-700">
+                                      {d.quantity_dispatched}
+                                    </td>
+                                    <td className="py-1.5">
+                                      <Badge
+                                        color={
+                                          d.status === "dispatch"
+                                            ? "green"
+                                            : d.status === "pending"
+                                              ? "amber"
+                                              : "red"
+                                        }
+                                      >
+                                        {d.status}
+                                      </Badge>
+                                    </td>
+                                    <td className="py-1.5 text-gray-500">
+                                      {new Date(
+                                        d.dispatched_at,
+                                      ).toLocaleDateString()}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-400">
+                            No dispatches yet for this customer.
+                          </p>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {customers.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-10">

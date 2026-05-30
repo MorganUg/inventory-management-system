@@ -7,6 +7,7 @@ import {
 import { PageHeader } from "../../components/shared/PageHeader.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import { Badge } from "../../components/ui/Badge.jsx";
+import ExportMenu from "../../components/shared/ExportMenu";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -260,8 +261,7 @@ export default function StockMovementsPage() {
               type="date"
               value={filters.to}
               onChange={(e) => updateFilter("to", e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2
-                                text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
           </div>
         </div>
@@ -271,9 +271,16 @@ export default function StockMovementsPage() {
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h2 className="font-semibold text-gray-800">Movement Log</h2>
-          <span className="text-xs text-gray-400">
-            Showing {movements.length} of {total} movements
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-400">
+              Showing {movements.length} of {total} movements
+            </span>
+            <ExportMenu
+              data={movements}
+              filename="stock_movements"
+              title="Stock Movement Log"
+            />
+          </div>
         </div>
 
         <table className="w-full text-sm">
