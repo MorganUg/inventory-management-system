@@ -1,4 +1,3 @@
-// src/pages/dispatches/DispatchesPage.jsx
 import { useState } from "react";
 import { useDispatches } from "../../hooks/useDispatches.js";
 import { PageHeader } from "../../components/shared/PageHeader.jsx";
@@ -108,10 +107,7 @@ export default function DispatchesPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         {/* Total value banner */}
-        <div
-          className="lg:col-span-3 bg-amber-50 border border-amber-200
-                    rounded-xl px-5 py-4 flex items-center justify-between"
-        >
+        <div className="lg:col-span-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center justify-between">
           <div>
             <p className="text-sm text-amber-700 font-medium">
               Total Dispatch Value
@@ -138,10 +134,7 @@ export default function DispatchesPage() {
               {topCustomers.map(([name, count]) => (
                 <div key={name} className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 truncate">{name}</span>
-                  <span
-                    className="text-xs bg-amber-100 text-amber-700
-                                        px-2 py-0.5 rounded-full font-medium"
-                  >
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
                     {count}
                   </span>
                 </div>
@@ -160,8 +153,7 @@ export default function DispatchesPage() {
           placeholder="Search by product or customer..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2
-                        text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
       </div>
 
@@ -181,8 +173,7 @@ export default function DispatchesPage() {
               ].map((h) => (
                 <th
                   key={h}
-                  className="text-left px-4 py-3 text-xs
-                                    font-medium text-gray-500 uppercase"
+                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
                 >
                   {h}
                 </th>

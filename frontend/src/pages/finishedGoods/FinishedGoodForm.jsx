@@ -55,7 +55,6 @@ export default function FinishedGoodForm({ initial, onSuccess }) {
       // error displayed in UI
     }
   };
-  ive;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
