@@ -1,3 +1,8 @@
+import { 
+  sendInventoryUpdateNotification, 
+  checkAndNotifyLowStock 
+} from './emailService.js';
+
 export const completeBatch = async (client, batchId, outputs, userId) => {
   // Fetch batch to get expected_yield + current status for proportional scaling + guards
   const batchRes = await client.query(
@@ -83,6 +88,20 @@ export const completeBatch = async (client, batchId, outputs, userId) => {
 			WHERE id = $2 RETURNING *`,
     [actualTotal, batchId],
   );
+
+  // === EMAIL NOTIFICATIONS ===
+  try {
+    await sendInventoryUpdateNotification('production', {
+      id: batchId,
+      batch_name: `Batch #${batchId}`,
+      actual_yield: actualTotal,
+    });
+
+    // Check for low stock after production consumption
+    await checkAndNotifyLowStock();
+  } catch (emailErr) {
+    console.error('[Email] Failed to send production notification:', emailErr.message);
+  }
 
   return batch.rows[0];
 };

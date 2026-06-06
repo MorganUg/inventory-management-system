@@ -18,7 +18,8 @@ router.use(authenticate); // all routes require login
 router.get("/", authorise("admin", "manager"), getAll);
 router.get("/:id", authorise("admin", "manager"), getOne);
 router.post("/", authorise("admin"), create);
-router.put("/:id", authorise("admin", "manager"), update);
+// Note: Actual authorization logic (role changes, manager restrictions) lives in the controller
+router.put("/:id", authorise("admin"), update);
 router.delete("/:id", authorise("admin"), remove);
 router.post("/:id/reset-password", authorise("admin"), resetPassword);
 router.post("/:id/deactivate", authorise("admin"), deactivate);

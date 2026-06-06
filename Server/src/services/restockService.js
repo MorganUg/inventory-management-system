@@ -1,3 +1,8 @@
+import { 
+  sendInventoryUpdateNotification, 
+  checkAndNotifyLowStock 
+} from './emailService.js';
+
 export const restockMaterial = async (client, payload, userId) => {
     const { material_id, supplier_id, quantity_received, cost_per_unit, notes } = payload;
 
@@ -22,6 +27,35 @@ export const restockMaterial = async (client, payload, userId) => {
          VALUES ('raw_material', $1, $2, 'restock', $3, $4)`,
         [material_id, quantity_received, restock.rows[0].id, userId]
     );
+
+    // === EMAIL NOTIFICATIONS ===
+    try {
+      // Enrich data for email
+      const materialRes = await client.query(
+        `SELECT rm.name, rm.unit, s.name as supplier_name 
+         FROM raw_materials rm 
+         LEFT JOIN suppliers s ON s.id = rm.supplier_id 
+         WHERE rm.id = $1`,
+        [material_id]
+      );
+      const mat = materialRes.rows[0] || {};
+
+      // Send purchase order / incoming inventory notification
+      await sendInventoryUpdateNotification('restock', {
+        id: restock.rows[0].id,
+        material_name: mat.name || 'Unknown Material',
+        quantity_received,
+        unit: mat.unit || '',
+        supplier_name: mat.supplier_name || null,
+        received_by_name: null,
+        notes,
+      });
+
+      // Check for low stock (though we just added stock, useful if it was very low before)
+      await checkAndNotifyLowStock();
+    } catch (emailErr) {
+      console.error('[Email] Failed to send restock notification:', emailErr.message);
+    }
 
     return restock.rows[0];
 };

@@ -1,23 +1,27 @@
 import bcrypt from "bcryptjs";
 
 export const seedUsers = async (pool) => {
+  // WARNING: These are development-only default accounts.
+  // NEVER use these passwords in staging or production.
+  // In production, seeding should be disabled or use environment-driven strong passwords.
   const users = [
     {
       username: "admin",
       email: "admin@candykingdom.com",
-      password: "admin123",
+      // Strong development password - still change this in any real environment
+      password: "DevAdmin!2026#Secure",
       role: "admin",
     },
     {
       username: "manager",
       email: "manager@candykingdom.com",
-      password: "manager123",
+      password: "DevManager!2026#Secure",
       role: "manager",
     },
     {
       username: "staff",
       email: "staff@candykingdom.com",
-      password: "staff123",
+      password: "DevStaff!2026#Secure",
       role: "staff",
     },
   ];

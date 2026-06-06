@@ -7,7 +7,7 @@ export const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-50 w-full">
+    <div className="flex h-screen bg-gray-50 w-full">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />

@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
+import { sendNewUserNotification } from "../services/emailService.js";
 
 //REGISTER
 export const register = async (req, res, next) => {
@@ -20,6 +21,12 @@ export const register = async (req, res, next) => {
       return res
         .status(400)
         .json({ error: "Username, email and password are required" });
+    }
+
+    if (!password || password.length < 8) {
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 8 characters" });
     }
 
     // Check email not already used
@@ -51,7 +58,19 @@ export const register = async (req, res, next) => {
       [username, email, password_hash, role],
     );
 
-    res.status(201).json(result.rows[0]);
+    const newUser = result.rows[0];
+
+    // === EMAIL NOTIFICATION ===
+    try {
+      await sendNewUserNotification(newUser);
+    } catch (emailErr) {
+      console.error(
+        "[Email] Failed to send new user notification:",
+        emailErr.message,
+      );
+    }
+
+    res.status(201).json(newUser);
   } catch (err) {
     next(err);
   }
@@ -132,10 +151,10 @@ export const updatePassword = async (req, res, next) => {
         .json({ error: "Current and new password are required" });
     }
 
-    if (new_password.length < 6) {
+    if (new_password.length < 8) {
       return res
         .status(400)
-        .json({ error: "New password must be at least 6 characters" });
+        .json({ error: "New password must be at least 8 characters" });
     }
 
     // Get user with hash

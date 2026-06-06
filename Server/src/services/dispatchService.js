@@ -1,3 +1,8 @@
+import { 
+  sendInventoryUpdateNotification, 
+  checkAndNotifyLowStock 
+} from './emailService.js';
+
 export const dispatchGoods = async (client, payload, userId) => {
     const { finished_good_id, quantity_dispatched, customer_id, notes } = payload;
 
@@ -32,6 +37,30 @@ export const dispatchGoods = async (client, payload, userId) => {
          VALUES ('finished_good', $1, $2, 'dispatch', $3, $4)`,
         [finished_good_id, -quantity_dispatched, dispatch.rows[0].id, userId]
     );
+
+    // === EMAIL NOTIFICATIONS ===
+    try {
+      // Enrich product info
+      const productRes = await client.query(
+        `SELECT name, unit FROM finished_goods WHERE id = $1`,
+        [finished_good_id]
+      );
+      const product = productRes.rows[0] || {};
+
+      await sendInventoryUpdateNotification('dispatch', {
+        id: dispatch.rows[0].id,
+        product_name: product.name || 'Unknown Product',
+        quantity_dispatched,
+        unit: product.unit || '',
+        customer_name: payload.customer_name || null,
+        dispatched_by_name: null,
+      });
+
+      // Check for low stock on finished goods after dispatch
+      await checkAndNotifyLowStock();
+    } catch (emailErr) {
+      console.error('[Email] Failed to send dispatch notification:', emailErr.message);
+    }
 
     return dispatch.rows[0];
 };

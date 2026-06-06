@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useRawMaterials } from "../hooks/useRawMaterials.js";
 import { useBatches } from "../hooks/useBatches.js";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import {
   useTopProductsChart,
   useStockLevelsChart,
 } from "../hooks/useReports.js";
+import { useAISummary } from "../hooks/useAI.js";
 import { StatCard } from "../components/ui/StatCard.jsx";
 import { Badge } from "../components/ui/Badge.jsx";
 import {
@@ -37,6 +38,7 @@ import {
   ArrowRight,
   TrendingUp,
   BarChart as BarChartIcon,
+  Target,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Card } from "../components/ui/Card.jsx";
@@ -114,7 +116,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="bg-amber-500 rounded-xl px-5 py-3 flex items-center justify-between text-white">
+      <div className="bg-amber-950 rounded-xl px-5 py-3 flex items-center justify-between text-white">
         <div className="flex items-center gap-4">
           <div>
             <p className="text-amber-100 text-sm">
@@ -198,6 +200,29 @@ export default function DashboardPage() {
           </p>
         </div>
       )}
+
+      {/* AI Highlights */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Target size={18} className="text-amber-500" />
+            <h3 className="font-semibold text-gray-800">AI Highlights</h3>
+          </div>
+          <Link
+            to="/reports"
+            className="text-xs font-medium text-amber-600 hover:text-amber-700 flex items-center gap-1"
+          >
+            Open full AI analysis →
+          </Link>
+        </div>
+        <p className="text-sm text-gray-600">
+          Demand forecasting and smart recommendations are available in{" "}
+          <span className="font-medium">Reports → AI Insights</span>. You can
+          now analyze a single product or run{" "}
+          <strong>"Analyze All Products"</strong> to get a full overview table
+          with risk levels and recommended actions across your entire catalog.
+        </p>
+      </div>
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

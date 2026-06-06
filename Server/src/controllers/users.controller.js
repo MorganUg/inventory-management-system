@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import pool from "../config/db.js";
+import { sendNewUserNotification } from "../services/emailService.js";
 
 // Admin only — see all users
 export const getAll = async (req, res, next) => {
@@ -30,11 +31,24 @@ export const getOne = async (req, res, next) => {
   }
 };
 
-// Admin can update any user's role or status
+// Update user (with proper authorization checks)
 export const update = async (req, res, next) => {
   try {
     const { username, email, role, is_active } = req.body;
+    const requester = req.user.role; // set by authenticate middleware
+    const targetUserId = parseInt(req.params.id);
 
+    // Only admins can change roles or active status
+    if (
+      (role !== undefined || is_active !== undefined) &&
+      requester !== "admin"
+    ) {
+      return res.status(403).json({
+        error: "Only administrators can change user roles or active status",
+      });
+    }
+
+    // Validate role if being changed
     const allowedRoles = ["admin", "manager", "staff"];
     if (role && !allowedRoles.includes(role)) {
       return res
@@ -42,11 +56,24 @@ export const update = async (req, res, next) => {
         .json({ error: `Role must be one of: ${allowedRoles.join(", ")}` });
     }
 
+    // Prevent managers from modifying admin accounts
+    if (requester === "manager") {
+      const targetUser = await pool.query(
+        "SELECT role FROM users WHERE id = $1",
+        [targetUserId],
+      );
+      if (targetUser.rows.length > 0 && targetUser.rows[0].role === "admin") {
+        return res.status(403).json({
+          error: "Managers cannot modify administrator accounts",
+        });
+      }
+    }
+
     // Check email uniqueness if being changed
     if (email) {
       const check = await pool.query(
         "SELECT id FROM users WHERE email = $1 AND id != $2",
-        [email, req.params.id],
+        [email, targetUserId],
       );
       if (check.rows.length > 0) {
         return res.status(409).json({ error: "Email already in use" });
@@ -66,11 +93,14 @@ export const update = async (req, res, next) => {
         email || null,
         role || null,
         is_active ?? null,
-        req.params.id,
+        targetUserId,
       ],
     );
-    if (!result.rows[0])
+
+    if (!result.rows[0]) {
       return res.status(404).json({ error: "User not found" });
+    }
+
     res.json(result.rows[0]);
   } catch (err) {
     next(err);
@@ -148,7 +178,7 @@ export const remove = async (req, res, next) => {
   }
 };
 
-// Admin creates a new user
+// Admin creates a new user (only admins can call this route)
 export const create = async (req, res, next) => {
   try {
     const { username, email, password, role = "staff" } = req.body;
@@ -192,7 +222,19 @@ export const create = async (req, res, next) => {
       [username, email, password_hash, role],
     );
 
-    res.status(201).json(result.rows[0]);
+    const newUser = result.rows[0];
+
+    // === EMAIL NOTIFICATION ===
+    try {
+      await sendNewUserNotification(newUser);
+    } catch (emailErr) {
+      console.error(
+        "[Email] Failed to send new user notification:",
+        emailErr.message,
+      );
+    }
+
+    res.status(201).json(newUser);
   } catch (err) {
     next(err);
   }

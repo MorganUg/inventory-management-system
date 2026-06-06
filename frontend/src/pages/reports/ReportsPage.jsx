@@ -1,5 +1,5 @@
-// src/pages/reports/ReportsPage.jsx
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   useProductionReport,
   useStockReport,
@@ -10,6 +10,9 @@ import {
   useTopProductsChart,
   useStockLevelsChart,
 } from "../../hooks/useReports.js";
+import { useAISummary } from "../../hooks/useAI.js";
+import { getFinishedGoods } from "../../api/finishedGoods.api.js";
+import api from "../../api/axios.js";
 import { PageHeader } from "../../components/shared/PageHeader.jsx";
 import { StatCard } from "../../components/ui/StatCard.jsx";
 import ExportMenu from "../../components/shared/ExportMenu";
@@ -31,6 +34,9 @@ import {
   Truck,
   FlaskConical,
   Calendar,
+  TrendingUp,
+  AlertTriangle,
+  Target,
 } from "lucide-react";
 
 // Section wrapper
@@ -116,12 +122,63 @@ export default function ReportsPage() {
   const { data: dispatchData } = useDispatchReport(filters);
   const { data: consumptionData } = useConsumptionReport(filters);
 
+  // AI Tab - Finished Goods list + selected product
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [aiView, setAiView] = useState("single"); // "single" | "all"
+  const [allSummaries, setAllSummaries] = useState([]);
+  const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
+
+  const { data: finishedGoods = [] } = useQuery({
+    queryKey: ["finishedGoods"],
+    queryFn: () => getFinishedGoods().then((res) => res.data),
+  });
+
+  const { data: aiSummary, isLoading: aiLoading } =
+    useAISummary(selectedProductId);
+
+  // Analyze all products using AI
+  const analyzeAllProducts = async () => {
+    if (finishedGoods.length === 0) return;
+
+    setIsAnalyzingAll(true);
+    setAiView("all");
+    setAllSummaries([]);
+
+    try {
+      const results = await Promise.all(
+        finishedGoods.map(async (product) => {
+          try {
+            const res = await api.get(`/ai/summary/${product.id}`);
+            return {
+              ...res.data,
+              productId: product.id,
+              productName: product.name,
+            };
+          } catch (err) {
+            console.warn(
+              `Failed to fetch AI summary for product ${product.id}`,
+            );
+            return null;
+          }
+        }),
+      );
+
+      const validResults = results.filter(Boolean);
+      setAllSummaries(validResults);
+    } catch (error) {
+      console.error("Failed to analyze all products", error);
+    } finally {
+      setIsAnalyzingAll(false);
+    }
+  };
+
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "production", label: "Production" },
     { id: "stock", label: "Stock" },
     { id: "dispatches", label: "Dispatches" },
     { id: "consumption", label: "Consumption" },
+    { id: "ai", label: "AI Insights" },
   ];
 
   return (
@@ -837,6 +894,436 @@ export default function ReportsPage() {
               </p>
             )}
           </Section>
+        </div>
+      )}
+
+      {/* AI INSIGHTS TAB */}
+      {activeTab === "ai" && (
+        <div className="space-y-6">
+          {/* AI View Controls */}
+          <div className="bg-white rounded-xl border border-gray-100 p-5">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setAiView("single")}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
+                      aiView === "single"
+                        ? "bg-amber-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    Single Product
+                  </button>
+                  <button
+                    onClick={() => setAiView("all")}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
+                      aiView === "all"
+                        ? "bg-amber-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    All Products Overview
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {aiView === "single" && (
+                  <div className="flex-1 min-w-[220px]">
+                    <select
+                      value={selectedProductId || ""}
+                      onChange={(e) =>
+                        setSelectedProductId(
+                          e.target.value ? Number(e.target.value) : null,
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    >
+                      <option value="">-- Select a product --</option>
+                      {finishedGoods.map((fg) => (
+                        <option key={fg.id} value={fg.id}>
+                          {fg.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {aiView === "all" && (
+                  <button
+                    onClick={analyzeAllProducts}
+                    disabled={isAnalyzingAll}
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+                  >
+                    {isAnalyzingAll ? "Analyzing..." : "Analyze All Products"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* SINGLE PRODUCT VIEW */}
+          {aiView === "single" && (
+            <>
+              {!selectedProductId && (
+                <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
+                  Select a finished good above to view AI-powered demand
+                  forecast, insights, and recommendations.
+                </div>
+              )}
+
+              {selectedProductId && aiLoading && (
+                <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
+                  Analyzing data with local statistical models...
+                </div>
+              )}
+
+              {selectedProductId && !aiLoading && !aiSummary?.forecast && (
+                <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
+                  No forecast data available for this product (insufficient
+                  history).
+                </div>
+              )}
+
+              {aiSummary && aiSummary.forecast && !aiLoading && (
+                <>
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <StatCard
+                      label="Current Stock"
+                      value={(
+                        aiSummary.forecast.current_stock ?? 0
+                      ).toLocaleString()}
+                      icon={Package}
+                      color="blue"
+                    />
+                    <StatCard
+                      label="4-Week Forecast"
+                      value={(
+                        aiSummary.forecast.forecast_next_4_weeks ?? 0
+                      ).toLocaleString()}
+                      icon={TrendingUp}
+                      color="amber"
+                    />
+                    <StatCard
+                      label="Trend"
+                      value={aiSummary.forecast.trend || "unknown"}
+                      icon={TrendingUp}
+                      color={
+                        aiSummary.forecast.trend === "increasing"
+                          ? "green"
+                          : aiSummary.forecast.trend === "decreasing"
+                            ? "red"
+                            : "gray"
+                      }
+                    />
+                    <StatCard
+                      label="Confidence"
+                      value={`${aiSummary.forecast.confidence_score ?? 0}%`}
+                      icon={Target}
+                      color={
+                        (aiSummary.forecast.confidence_score ?? 0) >= 70
+                          ? "green"
+                          : (aiSummary.forecast.confidence_score ?? 0) >= 45
+                            ? "amber"
+                            : "red"
+                      }
+                    />
+                    <StatCard
+                      label="Data Quality"
+                      value={`${aiSummary.forecast.data_quality_score ?? 0}%`}
+                      icon={BarChart2}
+                      color={
+                        (aiSummary.forecast.data_quality_score ?? 0) >= 70
+                          ? "green"
+                          : "amber"
+                      }
+                    />
+                  </div>
+
+                  {/* Forecast Chart */}
+                  <div className="bg-white rounded-xl border border-gray-100 p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-gray-800">
+                        Demand Forecast (Next 4 Weeks)
+                      </h3>
+                      <span className="text-xs text-gray-500">
+                        Method: {aiSummary.forecast.forecast_method || "N/A"}
+                      </span>
+                    </div>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={
+                            Array.isArray(aiSummary.forecast.weekly_forecast)
+                              ? aiSummary.forecast.weekly_forecast.map(
+                                  (value, index) => ({
+                                    week: `Week ${index + 1}`,
+                                    forecast: value,
+                                  }),
+                                )
+                              : []
+                          }
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#f0f0f0"
+                          />
+                          <XAxis dataKey="week" />
+                          <YAxis />
+                          <Tooltip />
+                          <Line
+                            type="monotone"
+                            dataKey="forecast"
+                            stroke="#f59e0b"
+                            strokeWidth={3}
+                            dot={{ r: 5, fill: "#f59e0b" }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-3 text-xs text-gray-500">
+                      {aiSummary.forecast?.explanation}
+                    </div>
+                  </div>
+
+                  {/* Insights */}
+                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                    <div className="px-5 py-4 border-b bg-gray-50 flex items-center gap-2">
+                      <AlertTriangle size={16} className="text-amber-500" />
+                      <h3 className="font-semibold text-gray-800">
+                        AI Insights
+                      </h3>
+                    </div>
+                    <div className="p-5">
+                      {(aiSummary.insights || []).length > 0 ? (
+                        <div className="space-y-3">
+                          {aiSummary.insights.map((insight, index) => (
+                            <div
+                              key={index}
+                              className="border border-gray-100 rounded-lg p-4 bg-gray-50"
+                            >
+                              <div className="flex items-start gap-3">
+                                <AlertTriangle
+                                  size={18}
+                                  className="text-amber-500 mt-0.5 flex-shrink-0"
+                                />
+                                <div>
+                                  <div className="font-medium text-gray-900">
+                                    {insight.title}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    {insight.message}
+                                  </div>
+                                  {insight.suggested_action && (
+                                    <div className="text-xs mt-2 text-amber-700 bg-amber-100 inline-block px-2 py-0.5 rounded">
+                                      Suggested: {insight.suggested_action}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          No significant insights detected for this product.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Recommendations */}
+                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                    <div className="px-5 py-4 border-b bg-gray-50 flex items-center gap-2">
+                      <Target size={16} className="text-blue-500" />
+                      <h3 className="font-semibold text-gray-800">
+                        Recommendations
+                      </h3>
+                    </div>
+                    <div className="p-5">
+                      {(aiSummary.recommendations || []).length > 0 ? (
+                        <div className="space-y-4">
+                          {aiSummary.recommendations.map((rec, index) => (
+                            <div
+                              key={index}
+                              className="border border-gray-100 rounded-lg p-4"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <span
+                                  className={`text-xs font-medium px-2 py-0.5 rounded-full
+                              ${
+                                rec.urgency_level === "high"
+                                  ? "bg-red-100 text-red-700"
+                                  : rec.urgency_level === "medium"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-blue-100 text-blue-700"
+                              }`}
+                                >
+                                  {rec.urgency_level.toUpperCase()} URGENCY
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  Action by: {rec.recommended_action_date}
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-700">
+                                {rec.reason}
+                              </div>
+                              <div className="mt-2 text-sm">
+                                <strong>Suggested production:</strong>{" "}
+                                {rec.suggested_quantity}{" "}
+                                {aiSummary.forecast?.unit || "units"}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          No immediate production recommendations at this time.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {/* ALL PRODUCTS OVERVIEW TABLE */}
+          {aiView === "all" && (
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BarChart2 size={16} className="text-amber-500" />
+                  <h3 className="font-semibold text-gray-800">
+                    AI Demand Forecast Overview
+                  </h3>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {allSummaries.length} products analyzed
+                </span>
+              </div>
+
+              {isAnalyzingAll && (
+                <div className="p-8 text-center text-gray-500">
+                  Running AI analysis across all products...
+                </div>
+              )}
+
+              {!isAnalyzingAll && allSummaries.length === 0 && (
+                <div className="p-8 text-center text-gray-500">
+                  Click "Analyze All Products" above to generate forecasts and
+                  risk assessment for every item.
+                </div>
+              )}
+
+              {allSummaries.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b bg-gray-50">
+                      <tr>
+                        <th className="text-left px-5 py-3 font-medium text-gray-600">
+                          Product
+                        </th>
+                        <th className="text-right px-4 py-3 font-medium text-gray-600">
+                          Stock
+                        </th>
+                        <th className="text-right px-4 py-3 font-medium text-gray-600">
+                          4W Forecast
+                        </th>
+                        <th className="text-center px-4 py-3 font-medium text-gray-600">
+                          Trend
+                        </th>
+                        <th className="text-center px-4 py-3 font-medium text-gray-600">
+                          Confidence
+                        </th>
+                        <th className="text-center px-4 py-3 font-medium text-gray-600">
+                          Risk
+                        </th>
+                        <th className="text-left px-5 py-3 font-medium text-gray-600">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {allSummaries
+                        .sort(
+                          (a, b) =>
+                            (b.forecast?.stockout_risk_weeks || 99) -
+                            (a.forecast?.stockout_risk_weeks || 99),
+                        )
+                        .map((item, index) => {
+                          const f = item.forecast || {};
+                          const stockoutRisk = f.stockout_risk_weeks ?? 99;
+                          const riskLevel =
+                            stockoutRisk < 2
+                              ? "High"
+                              : stockoutRisk < 4
+                                ? "Medium"
+                                : "Low";
+                          const riskColor =
+                            riskLevel === "High"
+                              ? "text-red-600 bg-red-50"
+                              : riskLevel === "Medium"
+                                ? "text-amber-600 bg-amber-50"
+                                : "text-green-600 bg-green-50";
+
+                          return (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-5 py-3 font-medium">
+                                {item.productName}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {f.current_stock ?? "-"}
+                              </td>
+                              <td className="px-4 py-3 text-right font-medium text-amber-600">
+                                {f.forecast_next_4_weeks ?? "-"}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <span
+                                  className={`text-xs px-2 py-0.5 rounded-full font-medium
+                                  ${
+                                    f.trend === "increasing"
+                                      ? "bg-green-100 text-green-700"
+                                      : f.trend === "decreasing"
+                                        ? "bg-red-100 text-red-700"
+                                        : "bg-gray-100 text-gray-600"
+                                  }`}
+                                >
+                                  {f.trend || "—"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-center font-medium">
+                                {f.confidence_score ?? 0}%
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <span
+                                  className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${riskColor}`}
+                                >
+                                  {riskLevel}
+                                </span>
+                              </td>
+                              <td className="px-5 py-3">
+                                <button
+                                  onClick={() => {
+                                    setSelectedProductId(item.productId);
+                                    setAiView("single");
+                                  }}
+                                  className="text-xs px-3 py-1 border border-gray-300 hover:bg-gray-100 rounded-md"
+                                >
+                                  View Details
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
