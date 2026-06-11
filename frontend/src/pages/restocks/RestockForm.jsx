@@ -47,14 +47,14 @@ export default function RestockForm({ onSuccess }) {
   const selectedMaterial = materials.find((m) => m.id === selectedMaterialId);
 
   return (
-    <form>
+    <form onSubmit={handleSubmit(onSubmit)}>
       {/* Material */}
       <div>
         <label className="text-sm font-medium text-gray-700">
           Raw Material <span className="text-red-500">*</span>
         </label>
         <select
-          {...register("material-id", { required: "Please select a material" })}
+          {...register("material_id", { required: "Please select a material" })}
           disabled={loadingMaterials}
           className={`mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-50 ${errors.material_id ? "border border-red-400 bg-red-50" : "border-gray-300"}`}
         >

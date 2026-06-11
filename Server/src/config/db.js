@@ -12,8 +12,8 @@ const pool = new Pool({
   },
 });
 
-const result = await pool.query("SELECT NOW()");
-console.log(result.rows);
+// const result = await pool.query("SELECT NOW()");
+// console.log(result.rows);
 
 pool.on("error", (err) => {
   console.error("PostgreSQL connection error:", err.message);

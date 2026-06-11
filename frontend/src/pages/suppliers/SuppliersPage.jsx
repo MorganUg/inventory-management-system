@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   useSuppliers,
   useDeleteSupplier,
@@ -150,9 +150,8 @@ export default function SuppliersPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {suppliers.map((s) => (
-                <>
+                <Fragment key={s.id}>
                   <tr
-                    key={s.id}
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() => toggleExpand(s.id)}
                   >
@@ -256,7 +255,7 @@ export default function SuppliersPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

@@ -107,7 +107,7 @@ const allLinks = [
         to: "/users",
         label: "Users",
         icon: Users,
-        roles: ["admin", "manager"],
+        roles: ["admin"],
       },
     ],
   },

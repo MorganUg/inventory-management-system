@@ -4,7 +4,7 @@ import { useFinishedGoods } from "../../hooks/useFinishedGoods.js";
 import { useBomByFinishedGood } from "../../hooks/useBom.js";
 import { Button } from "../../components/ui/Button.jsx";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AlertCircle } from "lucide-react";
 
 export default function BatchForm({ onSuccess }) {
   const {
@@ -25,6 +25,7 @@ export default function BatchForm({ onSuccess }) {
   });
   const createMutation = useCreateBatch();
   const { data: goods = [] } = useFinishedGoods();
+  const [materialWarnings, setMaterialWarnings] = useState(null);
 
   // Watch first output's finished good to load BOM preview
   const firstGoodId = parseInt(watch("outputs.0.finished_good_id"));
@@ -46,8 +47,14 @@ export default function BatchForm({ onSuccess }) {
         })),
     };
     try {
-      await createMutation.mutateAsync(payload);
-      onSuccess();
+      const response = await createMutation.mutateAsync(payload);
+      if (response.materialWarnings && response.materialWarnings.length > 0) {
+        // Show warnings but don't close immediately
+        setMaterialWarnings(response.materialWarnings);
+      } else {
+        // No warnings, close immediately
+        onSuccess();
+      }
     } catch (err) {
       // error handled in UI via form state
     }
@@ -176,6 +183,34 @@ export default function BatchForm({ onSuccess }) {
         </div>
       )}
 
+      {/* Material shortage warning */}
+      {materialWarnings && materialWarnings.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 flex gap-2">
+          <AlertCircle
+            className="text-yellow-600 flex-shrink-0 mt-0.5"
+            size={16}
+          />
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-yellow-800 mb-1">
+              ⚠ Insufficient Raw Materials
+            </p>
+            <div className="space-y-0.5">
+              {materialWarnings.map((warning, idx) => (
+                <p key={idx} className="text-xs text-yellow-700">
+                  <strong>{warning.material}:</strong> Need {warning.required},
+                  have {warning.available}
+                </p>
+              ))}
+            </div>
+            <p className="text-xs text-yellow-600 mt-2">
+              Batch created successfully, but production may fail when
+              completing if stock isn't restocked. You can still proceed or
+              restock materials before completing the batch.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Notes */}
       <div>
         <label className="text-sm font-medium text-gray-700">Notes</label>
@@ -194,14 +229,24 @@ export default function BatchForm({ onSuccess }) {
         </p>
       )}
 
-      <div className="flex justify-end pt-2">
-        <Button
-          type="submit"
-          loading={createMutation.isPending}
-          disabled={createMutation.isPending}
-        >
-          Create Batch
-        </Button>
+      <div className="flex justify-end gap-2 pt-2">
+        {materialWarnings && materialWarnings.length > 0 ? (
+          <Button
+            type="button"
+            onClick={onSuccess}
+            className="bg-amber-600 hover:bg-amber-700"
+          >
+            Acknowledge and Close
+          </Button>
+        ) : (
+          <Button
+            type="submit"
+            loading={createMutation.isPending}
+            disabled={createMutation.isPending}
+          >
+            Create Batch
+          </Button>
+        )}
       </div>
     </form>
   );

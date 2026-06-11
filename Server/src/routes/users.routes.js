@@ -15,8 +15,8 @@ const router = Router();
 
 router.use(authenticate); // all routes require login
 
-router.get("/", authorise("admin", "manager"), getAll);
-router.get("/:id", authorise("admin", "manager"), getOne);
+router.get("/", authorise("admin"), getAll);
+router.get("/:id", authorise("admin"), getOne);
 router.post("/", authorise("admin"), create);
 // Note: Actual authorization logic (role changes, manager restrictions) lives in the controller
 router.put("/:id", authorise("admin"), update);

@@ -29,7 +29,7 @@ export default function RestocksPage() {
   );
   const uniqueMaterials = new Set(restocks.map((r) => r.material_id)).size;
   const todayRestocks = restocks.filter(
-    (r) => new Date(r.received_at).toDateString() === new Data().toDateString(),
+    (r) => new Date(r.received_at).toDateString() === new Date().toDateString(),
   ).length;
 
   return (

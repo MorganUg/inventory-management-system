@@ -13,7 +13,7 @@ router.use(authenticate); // all routes require login
 router.use(authorise("admin", "manager")); // all routes require admin or manager role, staff cannot access audit trails
 
 router.get("/", getAll);
+router.get("/summary", getSummary);
 router.get("/:id", getOne);
-router.get("/summary", authorise("admin"), getSummary);
 
 export default router;

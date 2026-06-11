@@ -1,7 +1,7 @@
-import { 
-  sendInventoryUpdateNotification, 
-  checkAndNotifyLowStock 
-} from './emailService.js';
+import {
+  sendInventoryUpdateNotification,
+  checkAndNotifyLowStock,
+} from "./emailService.js";
 
 export const completeBatch = async (client, batchId, outputs, userId) => {
   // Fetch batch to get expected_yield + current status for proportional scaling + guards
@@ -16,10 +16,14 @@ export const completeBatch = async (client, batchId, outputs, userId) => {
 
   // Defensive guard inside service (in case called outside the controller)
   if (batchRow.status === "completed") {
-    throw Object.assign(new Error("Batch is already completed"), { status: 409 });
+    throw Object.assign(new Error("Batch is already completed"), {
+      status: 409,
+    });
   }
   if (batchRow.status === "cancelled") {
-    throw Object.assign(new Error("Cannot complete a cancelled batch"), { status: 409 });
+    throw Object.assign(new Error("Cannot complete a cancelled batch"), {
+      status: 409,
+    });
   }
 
   // Calculate total actual yield from the outputs provided at completion time
@@ -41,7 +45,42 @@ export const completeBatch = async (client, batchId, outputs, userId) => {
     [batchId],
   );
 
-  // 2. Deduct *scaled* raw material quantities + log actual usage
+  // 2. Validate sufficient stock before deducting
+  const insufficientMaterials = [];
+  for (const mat of materials.rows) {
+    const planned = parseFloat(mat.quantity_used);
+    const actualUsed = planned * ratio;
+
+    const stockCheck = await client.query(
+      `SELECT rm.name, rm.quantity_in_stock FROM raw_materials rm WHERE id = $1`,
+      [mat.material_id],
+    );
+
+    if (stockCheck.rows.length > 0) {
+      const currentStock = parseFloat(stockCheck.rows[0].quantity_in_stock);
+      const materialName = stockCheck.rows[0].name;
+
+      if (currentStock < actualUsed) {
+        insufficientMaterials.push({
+          name: materialName,
+          required: actualUsed,
+          available: currentStock,
+        });
+      }
+    }
+  }
+
+  // Throw error if any materials are insufficient
+  if (insufficientMaterials.length > 0) {
+    const errorMsg = insufficientMaterials
+      .map((m) => `${m.name}: need ${m.required}, only have ${m.available}`)
+      .join("; ");
+    const error = new Error(`Insufficient raw materials: ${errorMsg}`);
+    error.status = 400;
+    throw error;
+  }
+
+  // 3. Deduct *scaled* raw material quantities + log actual usage
   for (const mat of materials.rows) {
     const planned = parseFloat(mat.quantity_used);
     const actualUsed = planned * ratio;
@@ -59,7 +98,7 @@ export const completeBatch = async (client, batchId, outputs, userId) => {
     );
   }
 
-  // 3. Update each batch output + finished good stock + log
+  // 4. Update each batch output + finished good stock + log
   for (const output of outputs) {
     await client.query(
       `UPDATE batch_outputs SET actual_quantity = $1
@@ -79,7 +118,7 @@ export const completeBatch = async (client, batchId, outputs, userId) => {
     );
   }
 
-  // 4. Mark batch as completed and record the actual total yield
+  // 5. Mark batch as completed and record the actual total yield
   const batch = await client.query(
     `UPDATE production_batches
 			SET status = 'completed',
@@ -91,7 +130,7 @@ export const completeBatch = async (client, batchId, outputs, userId) => {
 
   // === EMAIL NOTIFICATIONS ===
   try {
-    await sendInventoryUpdateNotification('production', {
+    await sendInventoryUpdateNotification("production", {
       id: batchId,
       batch_name: `Batch #${batchId}`,
       actual_yield: actualTotal,
@@ -100,7 +139,10 @@ export const completeBatch = async (client, batchId, outputs, userId) => {
     // Check for low stock after production consumption
     await checkAndNotifyLowStock();
   } catch (emailErr) {
-    console.error('[Email] Failed to send production notification:', emailErr.message);
+    console.error(
+      "[Email] Failed to send production notification:",
+      emailErr.message,
+    );
   }
 
   return batch.rows[0];

@@ -92,7 +92,7 @@ function App() {
               <Route
                 path="users"
                 element={
-                  <RoleRoute roles={["admin", "manager"]}>
+                  <RoleRoute roles={["admin"]}>
                     <UsersPage />
                   </RoleRoute>
                 }

@@ -1,17 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createRestock, getRestock } from '../api/restocks.api';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createRestock, getRestock, getRestocks } from "../api/restocks.api";
 
-export const useRestocks = () => 
+export const useRestocks = () =>
   useQuery({
-    queryKey: ['restocks'],
-    queryFn: () => getRestocks().then(res => res.data)
+    queryKey: ["restocks"],
+    queryFn: () => getRestocks().then((res) => res.data),
   });
 
-export const useRestock = (id) => 
+export const useRestock = (id) =>
   useQuery({
-    queryKey: ['restocks', id],
-    queryFn: () => getRestock(id).then(res => res.data),
-    enabled: !!id
+    queryKey: ["restocks", id],
+    queryFn: () => getRestock(id).then((res) => res.data),
+    enabled: !!id,
   });
 
 export const useCreateRestock = () => {
@@ -19,9 +19,9 @@ export const useCreateRestock = () => {
   return useMutation({
     mutationFn: createRestock,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['restocks'] }); // Refresh restock list  
-      queryClient.invalidateQueries({ queryKey: ['rawMaterials'] }); // Updates stock levels
-      queryClient.invalidateQueries({ queryKey: ['stockMovements'] }); // new movement logged
-    }
+      queryClient.invalidateQueries({ queryKey: ["restocks"] }); // Refresh restock list
+      queryClient.invalidateQueries({ queryKey: ["rawMaterials"] }); // Updates stock levels
+      queryClient.invalidateQueries({ queryKey: ["stockMovements"] }); // new movement logged
+    },
   });
 };

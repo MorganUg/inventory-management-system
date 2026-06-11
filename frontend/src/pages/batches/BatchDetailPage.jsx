@@ -17,6 +17,7 @@ import {
   XCircle,
   FlaskConical,
   Package,
+  AlertTriangle,
 } from "lucide-react";
 
 const statusColor = {
@@ -42,6 +43,7 @@ function CompleteBatchForm({ batch, onSuccess }) {
   });
 
   const completeMutation = useCompleteBatch();
+  const [insufficientMaterials, setInsufficientMaterials] = useState(null);
 
   const onSubmit = async (data) => {
     const outputs = data.outputs.map((o) => ({
@@ -52,7 +54,33 @@ function CompleteBatchForm({ batch, onSuccess }) {
       await completeMutation.mutateAsync({ id: batch.id, outputs });
       onSuccess();
     } catch (err) {
-      // error already surfaced via mutation state
+      // Parse error message to extract material info
+      const errorMsg = err.response?.data?.error || "";
+      if (errorMsg.includes("Insufficient raw materials")) {
+        // Try to parse the insufficient materials from error message
+        const match = errorMsg.match(/Insufficient raw materials: (.+)/);
+        if (match) {
+          const materialsStr = match[1];
+          // Parse "material: need X, only have Y; material2: need A, only have B"
+          const mats = materialsStr
+            .split("; ")
+            .map((m) => {
+              const parts = m.match(/(.+): need (.+), only have (.+)/);
+              if (parts) {
+                return {
+                  name: parts[1],
+                  required: parts[2],
+                  available: parts[3],
+                };
+              }
+              return null;
+            })
+            .filter(Boolean);
+          if (mats.length > 0) {
+            setInsufficientMaterials(mats);
+          }
+        }
+      }
     }
   };
 
@@ -128,6 +156,33 @@ function CompleteBatchForm({ batch, onSuccess }) {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Insufficient materials alert */}
+      {insufficientMaterials && insufficientMaterials.length > 0 && (
+        <div className="bg-red-50 border border-red-300 rounded-lg p-3 flex gap-2">
+          <AlertTriangle
+            className="text-red-600 flex-shrink-0 mt-0.5"
+            size={16}
+          />
+          <div>
+            <p className="text-sm font-semibold text-red-800 mb-2">
+              Cannot Complete Batch — Insufficient Materials
+            </p>
+            <div className="space-y-1">
+              {insufficientMaterials.map((material, idx) => (
+                <p key={idx} className="text-xs text-red-700">
+                  <strong>{material.name}:</strong> Need {material.required},
+                  only have {material.available}
+                </p>
+              ))}
+            </div>
+            <p className="text-xs text-red-600 mt-2">
+              Record restocks for the missing materials before completing this
+              batch.
+            </p>
           </div>
         </div>
       )}

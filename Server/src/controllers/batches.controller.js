@@ -154,6 +154,41 @@ export const create = async (req, res, next) => {
       ]);
     }
 
+    // 4. Validate that sufficient materials exist for this batch (early warning)
+    const batchMaterialsCheck = await client.query(
+      `SELECT bm.*, rm.name, rm.quantity_in_stock
+         FROM batch_materials bm
+         JOIN raw_materials rm ON rm.id = bm.material_id
+         WHERE bm.batch_id = $1`,
+      [batchId],
+    );
+
+    const warnings = [];
+    for (const mat of batchMaterialsCheck.rows) {
+      const required = parseFloat(mat.quantity_used);
+      const available = parseFloat(mat.quantity_in_stock);
+
+      if (available < required) {
+        warnings.push({
+          material: mat.name,
+          required: required,
+          available: available,
+          shortage: required - available,
+        });
+      }
+    }
+
+    if (warnings.length > 0) {
+      const warningMsg = warnings
+        .map(
+          (w) => `${w.material}: need ${w.required}, only have ${w.available}`,
+        )
+        .join("; ");
+      console.warn(
+        `[BATCH] Low material warning for batch ${batchId}: ${warningMsg}`,
+      );
+    }
+
     // Fetch detail using the transaction client before commit (more reliable)
     const createdBatch = await client.query(
       "SELECT * FROM production_batches WHERE id = $1",
@@ -182,6 +217,7 @@ export const create = async (req, res, next) => {
       ...createdBatch.rows[0],
       materials: batchMaterials.rows,
       outputs: batchOutputs.rows,
+      materialWarnings: warnings.length > 0 ? warnings : null,
     });
   } catch (err) {
     try {
