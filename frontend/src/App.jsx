@@ -68,7 +68,7 @@ function App() {
               <Route
                 path="dispatches"
                 element={
-                  <RoleRoute roles={["admin", "manager"]}>
+                  <RoleRoute roles={["admin", "manager", "staff"]}>
                     <DispatchesPage />
                   </RoleRoute>
                 }
