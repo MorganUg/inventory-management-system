@@ -46,3 +46,18 @@ export const useAISummary = (finishedGoodId, weeksBack) => {
     enabled: !!finishedGoodId,
   });
 };
+
+export const useRawMaterialRestock = (params, options = {}) => {
+  return useQuery({
+    queryKey: ["ai", "raw-material-restock", params],
+    queryFn: async () => {
+      const res = await api.post("/ai/raw-material-restock", params, {
+        params: options,
+      });
+      return res.data;
+    },
+    enabled:
+      !!params?.productionForecasts?.length &&
+      !!params?.billOfMaterials?.length,
+  });
+};

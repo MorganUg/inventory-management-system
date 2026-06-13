@@ -159,67 +159,68 @@ export default function DispatchesPage() {
 
       {/* Dispatches Table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {[
-                "Product",
-                "Customer",
-                "Qty Dispatched",
-                "Value",
-                "Dispatched By",
-                "Date",
-                "Notes",
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map((d) => {
-              const value =
-                parseFloat(d.quantity_dispatched || 0) *
-                parseFloat(d.price_per_unit || 0);
-              return (
-                <tr key={d.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {d.product}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5 text-gray-600">
-                      <Truck size={13} />
-                      <span>{d.customer || "—"}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-amber-600">
-                    {parseFloat(d.quantity_dispatched).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {value > 0 ? `UGX ${value.toLocaleString()}` : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {d.dispatched_by_name || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      {new Date(d.dispatched_at).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-400 text-xs max-w-32 truncate">
-                    {d.notes || "—"}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {[
+                  "Product",
+                  "Customer",
+                  "Qty Dispatched",
+                  "Value",
+                  "Dispatched By",
+                  "Date",
+                  "Notes",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((d) => {
+                const value =
+                  parseFloat(d.quantity_dispatched || 0) *
+                  parseFloat(d.price_per_unit || 0);
+                return (
+                  <tr key={d.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {d.product}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5 text-gray-600">
+                        <Truck size={13} />
+                        <span>{d.customer || "—"}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-amber-600">
+                      {parseFloat(d.quantity_dispatched).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {value > 0 ? `UGX ${value.toLocaleString()}` : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {d.dispatched_by_name || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar size={12} />
+                        {new Date(d.dispatched_at).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-400 text-xs max-w-32 truncate">
+                      {d.notes || "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
         {filtered.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-10">
             {search

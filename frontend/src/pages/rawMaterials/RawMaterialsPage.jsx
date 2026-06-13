@@ -87,12 +87,14 @@ export default function RawMaterialsPage() {
                   <td className="px-4 py-3">
                     <Badge
                       color={
-                        material.quantity_in_stock <= material.reorder_level
+                        parseFloat(material.quantity_in_stock) <=
+                        parseFloat(material.reorder_level)
                           ? "red"
                           : "green"
                       }
                     >
-                      {material.quantity_in_stock <= material.reorder_level
+                      {parseFloat(material.quantity_in_stock) <=
+                      parseFloat(material.reorder_level)
                         ? "Low Stock"
                         : "Sufficient Stock"}
                     </Badge>

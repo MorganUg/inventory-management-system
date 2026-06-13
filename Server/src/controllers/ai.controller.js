@@ -2,7 +2,8 @@ import {
   getDemandForecast,
   generateInsights,
   generateReorderRecommendations,
-} from '../services/ai/index.js';
+} from "../services/ai/index.js";
+import { generateRawMaterialRestockRecommendations } from "../services/ai/recommendations/rawMaterialRestock.js";
 
 export const getForecast = async (req, res, next) => {
   try {
@@ -65,5 +66,40 @@ export const getAISummary = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+export const getRawMaterialRestock = async (req, res) => {
+  try {
+    const { billOfMaterials, rawMaterialInventory, productionForecasts } =
+      req.body;
+    const { leadTimeDays, safetyStockWeeks } = req.query;
+
+    if (!billOfMaterials || !productionForecasts) {
+      return res.status(400).json({
+        error: "billOfMaterials and productionForecasts are required",
+      });
+    }
+
+    const recommendations = generateRawMaterialRestockRecommendations({
+      billOfMaterials,
+      rawMaterialInventory: rawMaterialInventory || [],
+      productionForecasts,
+      options: {
+        leadTimeDays: leadTimeDays ? parseInt(leadTimeDays) : 7,
+        safetyStockWeeks: safetyStockWeeks ? parseInt(safetyStockWeeks) : 2,
+      },
+    });
+
+    res.json(recommendations);
+  } catch (error) {
+    console.error(
+      "Error generating raw material restock recommendations:",
+      error,
+    );
+    res.status(500).json({
+      error: "Failed to generate raw material restock recommendations",
+      details: error.message,
+    });
   }
 };

@@ -43,7 +43,7 @@ const allLinks = [
         to: "/restocks",
         label: "Restocks",
         icon: ArrowDownCircle,
-        roles: ["admin", "manager"],
+        roles: ["admin", "manager", "staff"],
       },
       {
         to: "/finished-goods",

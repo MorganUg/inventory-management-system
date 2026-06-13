@@ -24,24 +24,33 @@ export function generateReorderRecommendations(forecast) {
 
   // Dynamic reorder point (no schema change needed)
   const recommendedCoverWeeks = 3;
-  const dynamicReorderPoint = Math.ceil(avgWeeklyDemand * recommendedCoverWeeks);
+  const dynamicReorderPoint = Math.ceil(
+    avgWeeklyDemand * recommendedCoverWeeks,
+  );
 
   const projectedStockAfterForecast = currentStock - fourWeekForecast;
 
   if (projectedStockAfterForecast < dynamicReorderPoint) {
     const shortfall = Math.max(0, dynamicReorderPoint - currentStock);
-    const urgency = projectedStockAfterForecast < 0 ? 'high' : 
-                   (projectedStockAfterForecast < dynamicReorderPoint * 0.5 ? 'medium' : 'low');
+    const urgency =
+      projectedStockAfterForecast < 0
+        ? "high"
+        : projectedStockAfterForecast < dynamicReorderPoint * 0.5
+          ? "medium"
+          : "low";
 
     const actionDate = new Date();
-    actionDate.setDate(actionDate.getDate() + Math.ceil((currentStock / Math.max(1, avgWeeklyDemand)) * 7));
+    actionDate.setDate(
+      actionDate.getDate() +
+        Math.ceil((currentStock / Math.max(1, avgWeeklyDemand)) * 7),
+    );
 
     recommendations.push({
       finished_good_id: forecast.finished_good_id,
       name: forecast.name,
-      type: 'production_recommendation',
+      type: "production_recommendation",
       urgency_level: urgency,
-      recommended_action_date: actionDate.toISOString().split('T')[0],
+      recommended_action_date: actionDate.toISOString().split("T")[0],
       current_stock: currentStock,
       forecasted_demand_4_weeks: fourWeekForecast,
       suggested_quantity: Math.max(shortfall, Math.ceil(avgWeeklyDemand * 2)),

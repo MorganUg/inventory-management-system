@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   useProductionReport,
@@ -10,7 +10,7 @@ import {
   useTopProductsChart,
   useStockLevelsChart,
 } from "../../hooks/useReports.js";
-import { useAISummary } from "../../hooks/useAI.js";
+import { useAISummary, useRawMaterialRestock } from "../../hooks/useAI.js";
 import { getFinishedGoods } from "../../api/finishedGoods.api.js";
 import api from "../../api/axios.js";
 import { PageHeader } from "../../components/shared/PageHeader.jsx";
@@ -136,6 +136,67 @@ export default function ReportsPage() {
   const { data: aiSummary, isLoading: aiLoading } =
     useAISummary(selectedProductId);
 
+  const [billOfMaterials, setBillOfMaterials] = useState([]);
+  const [rawMaterialInventory, setRawMaterialInventory] = useState([]);
+
+  useEffect(() => {
+    const fetchRawMaterialData = async () => {
+      try {
+        const [bomRes, invRes] = await Promise.all([
+          api.get("/bill-of-materials"),
+          api.get("/raw-materials/inventory"),
+        ]);
+        setBillOfMaterials(bomRes.data || []);
+        setRawMaterialInventory(invRes.data || []);
+      } catch (error) {
+        console.error("Failed to load raw material data:", error);
+        setBillOfMaterials([]);
+        setRawMaterialInventory([]);
+      }
+    };
+    fetchRawMaterialData();
+  }, []);
+
+  // Prepare params for raw material restock (single product)
+  const singleProductRestockParams = useMemo(() => {
+    if (!aiSummary?.recommendations?.length || !selectedProductId) return null;
+
+    return {
+      billOfMaterials,
+      rawMaterialInventory,
+      productionForecasts: aiSummary.recommendations.map((rec) => ({
+        ...rec,
+        finished_good_id: selectedProductId,
+        name:
+          finishedGoods.find((fg) => fg.id === selectedProductId)?.name ||
+          "Unknown",
+        forecast_next_4_weeks: aiSummary.forecast?.forecast_next_4_weeks || 0,
+        current_stock: aiSummary.forecast?.current_stock || 0,
+      })),
+    };
+  }, [
+    aiSummary,
+    selectedProductId,
+    billOfMaterials,
+    rawMaterialInventory,
+    finishedGoods,
+  ]);
+
+  // Fetch raw material restock for single product
+  const { data: singleProductRawMaterialRestock = [] } = useRawMaterialRestock(
+    singleProductRestockParams,
+    { leadTimeDays: 7, safetyStockWeeks: 2 },
+  );
+
+  // Enhanced AI summary
+  const enhancedAiSummary = useMemo(() => {
+    if (!aiSummary) return null;
+    return {
+      ...aiSummary,
+      rawMaterialRestock: singleProductRawMaterialRestock,
+    };
+  }, [aiSummary, singleProductRawMaterialRestock]);
+
   // Analyze all products using AI
   const analyzeAllProducts = async () => {
     if (finishedGoods.length === 0) return;
@@ -171,6 +232,35 @@ export default function ReportsPage() {
       setIsAnalyzingAll(false);
     }
   };
+
+  // Prepare params for all products raw material restock
+  const allProductsRestockParams = useMemo(() => {
+    if (!allSummaries?.length || !billOfMaterials?.length) return null;
+
+    const allProductionRecommendations = allSummaries
+      .filter((result) => result.recommendations?.length > 0)
+      .flatMap((result) =>
+        result.recommendations.map((rec) => ({
+          ...rec,
+          finished_good_id: result.productId,
+          name: result.productName,
+          forecast_next_4_weeks: result.forecast?.forecast_next_4_weeks || 0,
+          current_stock: result.forecast?.current_stock || 0,
+        })),
+      );
+
+    return {
+      billOfMaterials,
+      rawMaterialInventory,
+      productionForecasts: allProductionRecommendations,
+    };
+  }, [allSummaries, billOfMaterials, rawMaterialInventory]);
+
+  // Fetch raw material restock for all products
+  const { data: allRawMaterialSummaries = [] } = useRawMaterialRestock(
+    allProductsRestockParams,
+    { leadTimeDays: 7, safetyStockWeeks: 2 },
+  );
 
   const tabs = [
     { id: "overview", label: "Overview" },
@@ -979,180 +1069,194 @@ export default function ReportsPage() {
                 </div>
               )}
 
-              {selectedProductId && !aiLoading && !aiSummary?.forecast && (
-                <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
-                  No forecast data available for this product (insufficient
-                  history).
-                </div>
-              )}
-
-              {aiSummary && aiSummary.forecast && !aiLoading && (
-                <>
-                  {/* Summary Cards */}
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <StatCard
-                      label="Current Stock"
-                      value={(
-                        aiSummary.forecast.current_stock ?? 0
-                      ).toLocaleString()}
-                      icon={Package}
-                      color="blue"
-                    />
-                    <StatCard
-                      label="4-Week Forecast"
-                      value={(
-                        aiSummary.forecast.forecast_next_4_weeks ?? 0
-                      ).toLocaleString()}
-                      icon={TrendingUp}
-                      color="amber"
-                    />
-                    <StatCard
-                      label="Trend"
-                      value={aiSummary.forecast.trend || "unknown"}
-                      icon={TrendingUp}
-                      color={
-                        aiSummary.forecast.trend === "increasing"
-                          ? "green"
-                          : aiSummary.forecast.trend === "decreasing"
-                            ? "red"
-                            : "gray"
-                      }
-                    />
-                    <StatCard
-                      label="Confidence"
-                      value={`${aiSummary.forecast.confidence_score ?? 0}%`}
-                      icon={Target}
-                      color={
-                        (aiSummary.forecast.confidence_score ?? 0) >= 70
-                          ? "green"
-                          : (aiSummary.forecast.confidence_score ?? 0) >= 45
-                            ? "amber"
-                            : "red"
-                      }
-                    />
-                    <StatCard
-                      label="Data Quality"
-                      value={`${aiSummary.forecast.data_quality_score ?? 0}%`}
-                      icon={BarChart2}
-                      color={
-                        (aiSummary.forecast.data_quality_score ?? 0) >= 70
-                          ? "green"
-                          : "amber"
-                      }
-                    />
+              {selectedProductId &&
+                !aiLoading &&
+                !enhancedAiSummary?.forecast && (
+                  <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
+                    No forecast data available for this product (insufficient
+                    history).
                   </div>
+                )}
 
-                  {/* Forecast Chart */}
-                  <div className="bg-white rounded-xl border border-gray-100 p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-gray-800">
-                        Demand Forecast (Next 4 Weeks)
-                      </h3>
-                      <span className="text-xs text-gray-500">
-                        Method: {aiSummary.forecast.forecast_method || "N/A"}
-                      </span>
+              {enhancedAiSummary &&
+                enhancedAiSummary.forecast &&
+                !aiLoading && (
+                  <>
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      <StatCard
+                        label="Current Stock"
+                        value={(
+                          enhancedAiSummary.forecast.current_stock ?? 0
+                        ).toLocaleString()}
+                        icon={Package}
+                        color="blue"
+                      />
+                      <StatCard
+                        label="4-Week Forecast"
+                        value={(
+                          enhancedAiSummary.forecast.forecast_next_4_weeks ?? 0
+                        ).toLocaleString()}
+                        icon={TrendingUp}
+                        color="amber"
+                      />
+                      <StatCard
+                        label="Trend"
+                        value={enhancedAiSummary.forecast.trend || "unknown"}
+                        icon={TrendingUp}
+                        color={
+                          enhancedAiSummary.forecast.trend === "increasing"
+                            ? "green"
+                            : enhancedAiSummary.forecast.trend === "decreasing"
+                              ? "red"
+                              : "gray"
+                        }
+                      />
+                      <StatCard
+                        label="Confidence"
+                        value={`${enhancedAiSummary.forecast.confidence_score ?? 0}%`}
+                        icon={Target}
+                        color={
+                          (enhancedAiSummary.forecast.confidence_score ?? 0) >=
+                          70
+                            ? "green"
+                            : (enhancedAiSummary.forecast.confidence_score ??
+                                  0) >= 45
+                              ? "amber"
+                              : "red"
+                        }
+                      />
+                      <StatCard
+                        label="Data Quality"
+                        value={`${enhancedAiSummary.forecast.data_quality_score ?? 0}%`}
+                        icon={BarChart2}
+                        color={
+                          (enhancedAiSummary.forecast.data_quality_score ??
+                            0) >= 70
+                            ? "green"
+                            : "amber"
+                        }
+                      />
                     </div>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={
-                            Array.isArray(aiSummary.forecast.weekly_forecast)
-                              ? aiSummary.forecast.weekly_forecast.map(
-                                  (value, index) => ({
-                                    week: `Week ${index + 1}`,
-                                    forecast: value,
-                                  }),
-                                )
-                              : []
-                          }
-                        >
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#f0f0f0"
-                          />
-                          <XAxis dataKey="week" />
-                          <YAxis />
-                          <Tooltip />
-                          <Line
-                            type="monotone"
-                            dataKey="forecast"
-                            stroke="#f59e0b"
-                            strokeWidth={3}
-                            dot={{ r: 5, fill: "#f59e0b" }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="mt-3 text-xs text-gray-500">
-                      {aiSummary.forecast?.explanation}
-                    </div>
-                  </div>
 
-                  {/* Insights */}
-                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                    <div className="px-5 py-4 border-b bg-gray-50 flex items-center gap-2">
-                      <AlertTriangle size={16} className="text-amber-500" />
-                      <h3 className="font-semibold text-gray-800">
-                        AI Insights
-                      </h3>
+                    {/* Forecast Chart */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold text-gray-800">
+                          Demand Forecast (Next 4 Weeks)
+                        </h3>
+                        <span className="text-xs text-gray-500">
+                          Method:{" "}
+                          {enhancedAiSummary.forecast.forecast_method || "N/A"}
+                        </span>
+                      </div>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={
+                              Array.isArray(
+                                enhancedAiSummary.forecast.weekly_forecast,
+                              )
+                                ? enhancedAiSummary.forecast.weekly_forecast.map(
+                                    (value, index) => ({
+                                      week: `Week ${index + 1}`,
+                                      forecast: value,
+                                    }),
+                                  )
+                                : []
+                            }
+                          >
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#f0f0f0"
+                            />
+                            <XAxis dataKey="week" />
+                            <YAxis />
+                            <Tooltip />
+                            <Line
+                              type="monotone"
+                              dataKey="forecast"
+                              stroke="#f59e0b"
+                              strokeWidth={3}
+                              dot={{ r: 5, fill: "#f59e0b" }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="mt-3 text-xs text-gray-500">
+                        {enhancedAiSummary.forecast?.explanation}
+                      </div>
                     </div>
-                    <div className="p-5">
-                      {(aiSummary.insights || []).length > 0 ? (
-                        <div className="space-y-3">
-                          {aiSummary.insights.map((insight, index) => (
-                            <div
-                              key={index}
-                              className="border border-gray-100 rounded-lg p-4 bg-gray-50"
-                            >
-                              <div className="flex items-start gap-3">
-                                <AlertTriangle
-                                  size={18}
-                                  className="text-amber-500 mt-0.5 flex-shrink-0"
-                                />
-                                <div>
-                                  <div className="font-medium text-gray-900">
-                                    {insight.title}
-                                  </div>
-                                  <div className="text-sm text-gray-600 mt-1">
-                                    {insight.message}
-                                  </div>
-                                  {insight.suggested_action && (
-                                    <div className="text-xs mt-2 text-amber-700 bg-amber-100 inline-block px-2 py-0.5 rounded">
-                                      Suggested: {insight.suggested_action}
+
+                    {/* Insights */}
+                    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                      <div className="px-5 py-4 border-b bg-gray-50 flex items-center gap-2">
+                        <AlertTriangle size={16} className="text-amber-500" />
+                        <h3 className="font-semibold text-gray-800">
+                          AI Insights
+                        </h3>
+                      </div>
+                      <div className="p-5">
+                        {(enhancedAiSummary.insights || []).length > 0 ? (
+                          <div className="space-y-3">
+                            {enhancedAiSummary.insights.map(
+                              (insight, index) => (
+                                <div
+                                  key={index}
+                                  className="border border-gray-100 rounded-lg p-4 bg-gray-50"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <AlertTriangle
+                                      size={18}
+                                      className="text-amber-500 mt-0.5 flex-shrink-0"
+                                    />
+                                    <div>
+                                      <div className="font-medium text-gray-900">
+                                        {insight.title}
+                                      </div>
+                                      <div className="text-sm text-gray-600 mt-1">
+                                        {insight.message}
+                                      </div>
+                                      {insight.suggested_action && (
+                                        <div className="text-xs mt-2 text-amber-700 bg-amber-100 inline-block px-2 py-0.5 rounded">
+                                          Suggested: {insight.suggested_action}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          No significant insights detected for this product.
-                        </p>
-                      )}
+                              ),
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">
+                            No significant insights detected for this product.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Recommendations */}
-                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                    <div className="px-5 py-4 border-b bg-gray-50 flex items-center gap-2">
-                      <Target size={16} className="text-blue-500" />
-                      <h3 className="font-semibold text-gray-800">
-                        Recommendations
-                      </h3>
-                    </div>
-                    <div className="p-5">
-                      {(aiSummary.recommendations || []).length > 0 ? (
-                        <div className="space-y-4">
-                          {aiSummary.recommendations.map((rec, index) => (
-                            <div
-                              key={index}
-                              className="border border-gray-100 rounded-lg p-4"
-                            >
-                              <div className="flex items-center gap-2 mb-2">
-                                <span
-                                  className={`text-xs font-medium px-2 py-0.5 rounded-full
+                    {/* Recommendations */}
+                    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                      <div className="px-5 py-4 border-b bg-gray-50 flex items-center gap-2">
+                        <Target size={16} className="text-blue-500" />
+                        <h3 className="font-semibold text-gray-800">
+                          Recommendations
+                        </h3>
+                      </div>
+                      <div className="p-5">
+                        {(enhancedAiSummary.recommendations || []).length >
+                        0 ? (
+                          <div className="space-y-4">
+                            {enhancedAiSummary.recommendations.map(
+                              (rec, index) => (
+                                <div
+                                  key={index}
+                                  className="border border-gray-100 rounded-lg p-4"
+                                >
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span
+                                      className={`text-xs font-medium px-2 py-0.5 rounded-full
                               ${
                                 rec.urgency_level === "high"
                                   ? "bg-red-100 text-red-700"
@@ -1160,33 +1264,386 @@ export default function ReportsPage() {
                                     ? "bg-amber-100 text-amber-700"
                                     : "bg-blue-100 text-blue-700"
                               }`}
-                                >
-                                  {rec.urgency_level.toUpperCase()} URGENCY
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  Action by: {rec.recommended_action_date}
-                                </span>
-                              </div>
-                              <div className="text-sm text-gray-700">
-                                {rec.reason}
-                              </div>
-                              <div className="mt-2 text-sm">
-                                <strong>Suggested production:</strong>{" "}
-                                {rec.suggested_quantity}{" "}
-                                {aiSummary.forecast?.unit || "units"}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          No immediate production recommendations at this time.
-                        </p>
-                      )}
+                                    >
+                                      {rec.urgency_level.toUpperCase()} URGENCY
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      Action by: {rec.recommended_action_date}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    {rec.reason}
+                                  </div>
+                                  <div className="mt-2 text-sm">
+                                    <strong>Suggested production:</strong>{" "}
+                                    {rec.suggested_quantity}{" "}
+                                    {enhancedAiSummary.forecast?.unit ||
+                                      "units"}
+                                  </div>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">
+                            No immediate production recommendations at this
+                            time.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+
+                    {/* RAW MATERIAL RESTOCK INSIGHTS */}
+                    {selectedProductId &&
+                      enhancedAiSummary?.rawMaterialRestock &&
+                      !aiLoading && (
+                        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                          <div className="px-5 py-4 border-b bg-gray-50 flex items-center gap-2">
+                            <Package size={16} className="text-green-500" />
+                            <h3 className="font-semibold text-gray-800">
+                              Raw Material Restock
+                            </h3>
+                            {enhancedAiSummary.rawMaterialRestock.some(
+                              (r) => r.urgency_level === "critical",
+                            ) && (
+                              <span className="ml-auto px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                                Critical Items
+                              </span>
+                            )}
+                          </div>
+                          <div className="p-5">
+                            {enhancedAiSummary.rawMaterialRestock.length > 0 ? (
+                              <div className="space-y-4">
+                                {/* Critical/Highest Priority Items First */}
+                                {enhancedAiSummary.rawMaterialRestock
+                                  .sort((a, b) => {
+                                    const urgencyOrder = {
+                                      critical: 0,
+                                      high: 1,
+                                      medium: 2,
+                                      low: 3,
+                                    };
+                                    return (
+                                      (urgencyOrder[a.urgency_level] || 4) -
+                                      (urgencyOrder[b.urgency_level] || 4)
+                                    );
+                                  })
+                                  .map((rec, index) => (
+                                    <div
+                                      key={index}
+                                      className={`border rounded-lg p-4 ${
+                                        rec.urgency_level === "critical"
+                                          ? "border-red-200 bg-red-50"
+                                          : rec.urgency_level === "high"
+                                            ? "border-amber-200 bg-amber-50"
+                                            : "border-gray-200 bg-white"
+                                      }`}
+                                    >
+                                      {/* Header with urgency and restock date */}
+                                      <div className="flex items-start justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                          <span
+                                            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                              rec.urgency_level === "critical"
+                                                ? "bg-red-200 text-red-800"
+                                                : rec.urgency_level === "high"
+                                                  ? "bg-amber-200 text-amber-800"
+                                                  : rec.urgency_level ===
+                                                      "medium"
+                                                    ? "bg-blue-200 text-blue-800"
+                                                    : "bg-gray-200 text-gray-700"
+                                            }`}
+                                          >
+                                            {rec.urgency_level.toUpperCase()}
+                                          </span>
+                                          <span className="font-medium text-gray-900">
+                                            {rec.name}
+                                          </span>
+                                        </div>
+                                        {rec.restock_by_date && (
+                                          <span className="text-xs text-gray-500">
+                                            Restock by:{" "}
+                                            <span className="font-medium text-gray-700">
+                                              {new Date(
+                                                rec.restock_by_date,
+                                              ).toLocaleDateString("en-US", {
+                                                month: "short",
+                                                day: "numeric",
+                                                year: "numeric",
+                                              })}
+                                            </span>
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {/* Stock Levels Visualization */}
+                                      <div className="grid grid-cols-3 gap-3 mb-3">
+                                        <div>
+                                          <div className="text-xs text-gray-500 mb-1">
+                                            Current Stock
+                                          </div>
+                                          <div className="text-lg font-semibold">
+                                            {rec.current_stock}{" "}
+                                            <span className="text-sm font-normal text-gray-500">
+                                              {rec.unit || "units"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-gray-500 mb-1">
+                                            Required
+                                          </div>
+                                          <div className="text-lg font-semibold text-amber-600">
+                                            {rec.required_for_production}{" "}
+                                            <span className="text-sm font-normal text-gray-500">
+                                              {rec.unit || "units"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-gray-500 mb-1">
+                                            Shortfall
+                                          </div>
+                                          <div
+                                            className={`text-lg font-semibold ${rec.projected_shortfall > 0 ? "text-red-600" : "text-green-600"}`}
+                                          >
+                                            {rec.projected_shortfall > 0
+                                              ? `-${rec.projected_shortfall}`
+                                              : "0"}
+                                            <span className="text-sm font-normal text-gray-500">
+                                              {rec.unit || "units"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Order Recommendation */}
+                                      <div className="bg-white rounded-lg border border-gray-200 p-3 mb-3">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <span className="text-sm font-medium text-gray-700">
+                                            Suggested Order
+                                          </span>
+                                          <span className="text-lg font-bold text-green-600">
+                                            {rec.suggested_order_quantity}{" "}
+                                            {rec.unit || "units"}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                                          <span>
+                                            Reorder Point: {rec.reorder_point}
+                                          </span>
+                                          <span>
+                                            Safety Stock:{" "}
+                                            {rec.safety_stock_recommended}
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* Dependent Products (Collapsible) */}
+                                      {rec.dependent_products &&
+                                        rec.dependent_products.length > 0 && (
+                                          <details className="text-xs">
+                                            <summary className="cursor-pointer text-gray-600 hover:text-gray-900 font-medium">
+                                              Required for{" "}
+                                              {rec.dependent_products.length}{" "}
+                                              product
+                                              {rec.dependent_products.length > 1
+                                                ? "s"
+                                                : ""}
+                                            </summary>
+                                            <div className="mt-2 space-y-2">
+                                              {rec.dependent_products.map(
+                                                (product, idx) => (
+                                                  <div
+                                                    key={idx}
+                                                    className="flex items-center justify-between bg-gray-50 rounded px-3 py-2"
+                                                  >
+                                                    <span className="text-gray-700">
+                                                      {
+                                                        product.finished_good_name
+                                                      }
+                                                    </span>
+                                                    <div className="flex items-center gap-3">
+                                                      <span className="text-gray-500">
+                                                        {
+                                                          product.required_quantity
+                                                        }{" "}
+                                                        {rec.unit || "units"}
+                                                      </span>
+                                                      <span
+                                                        className={`px-1.5 py-0.5 rounded text-xs ${
+                                                          product.production_urgency ===
+                                                          "high"
+                                                            ? "bg-red-100 text-red-700"
+                                                            : product.production_urgency ===
+                                                                "medium"
+                                                              ? "bg-amber-100 text-amber-700"
+                                                              : "bg-blue-100 text-blue-700"
+                                                        }`}
+                                                      >
+                                                        {
+                                                          product.production_urgency
+                                                        }
+                                                      </span>
+                                                    </div>
+                                                  </div>
+                                                ),
+                                              )}
+                                            </div>
+                                          </details>
+                                        )}
+
+                                      {/* Reason */}
+                                      <div className="mt-3 text-xs text-gray-600 bg-gray-50 rounded px-3 py-2">
+                                        {rec.reason}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-8">
+                                <Package
+                                  size={32}
+                                  className="mx-auto text-gray-300 mb-2"
+                                />
+                                <p className="text-sm text-gray-500">
+                                  No raw material restock needed for upcoming
+                                  production
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* ALL PRODUCTS VIEW - RAW MATERIAL SUMMARY */}
+                    {aiView === "all" &&
+                      allRawMaterialSummaries?.length > 0 && (
+                        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                          <div className="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle
+                                size={16}
+                                className="text-red-500"
+                              />
+                              <h3 className="font-semibold text-gray-800">
+                                Raw Material Restock Alerts
+                              </h3>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {allRawMaterialSummaries.filter(
+                                (r) => r.urgency_level === "critical",
+                              ).length > 0 && (
+                                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                                  {
+                                    allRawMaterialSummaries.filter(
+                                      (r) => r.urgency_level === "critical",
+                                    ).length
+                                  }{" "}
+                                  Critical
+                                </span>
+                              )}
+                              <span className="text-xs text-gray-500">
+                                {allRawMaterialSummaries.length} materials need
+                                restock
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead className="border-b bg-gray-50">
+                                <tr>
+                                  <th className="text-left px-5 py-3 font-medium text-gray-600">
+                                    Material
+                                  </th>
+                                  <th className="text-right px-4 py-3 font-medium text-gray-600">
+                                    Current Stock
+                                  </th>
+                                  <th className="text-right px-4 py-3 font-medium text-gray-600">
+                                    Required
+                                  </th>
+                                  <th className="text-right px-4 py-3 font-medium text-gray-600">
+                                    Shortfall
+                                  </th>
+                                  <th className="text-center px-4 py-3 font-medium text-gray-600">
+                                    Urgency
+                                  </th>
+                                  <th className="text-left px-4 py-3 font-medium text-gray-600">
+                                    Restock By
+                                  </th>
+                                  <th className="text-right px-4 py-3 font-medium text-gray-600">
+                                    Suggested Order
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y">
+                                {allRawMaterialSummaries
+                                  .sort((a, b) => {
+                                    const urgencyOrder = {
+                                      critical: 0,
+                                      high: 1,
+                                      medium: 2,
+                                      low: 3,
+                                    };
+                                    return (
+                                      (urgencyOrder[a.urgency_level] || 4) -
+                                      (urgencyOrder[b.urgency_level] || 4)
+                                    );
+                                  })
+                                  .map((rec, index) => (
+                                    <tr
+                                      key={index}
+                                      className={`hover:bg-gray-50 ${
+                                        rec.urgency_level === "critical"
+                                          ? "bg-red-50"
+                                          : ""
+                                      }`}
+                                    >
+                                      <td className="px-5 py-3 font-medium">
+                                        {rec.name}
+                                      </td>
+                                      <td className="px-4 py-3 text-right">
+                                        {rec.current_stock}
+                                      </td>
+                                      <td className="px-4 py-3 text-right">
+                                        {rec.required_for_production}
+                                      </td>
+                                      <td className="px-4 py-3 text-right font-medium text-red-600">
+                                        -{rec.projected_shortfall}
+                                      </td>
+                                      <td className="px-4 py-3 text-center">
+                                        <span
+                                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                            rec.urgency_level === "critical"
+                                              ? "bg-red-100 text-red-700"
+                                              : rec.urgency_level === "high"
+                                                ? "bg-amber-100 text-amber-700"
+                                                : "bg-blue-100 text-blue-700"
+                                          }`}
+                                        >
+                                          {rec.urgency_level}
+                                        </span>
+                                      </td>
+                                      <td className="px-4 py-3 text-xs">
+                                        {rec.restock_by_date
+                                          ? new Date(
+                                              rec.restock_by_date,
+                                            ).toLocaleDateString()
+                                          : "—"}
+                                      </td>
+                                      <td className="px-4 py-3 text-right font-medium text-green-600">
+                                        {rec.suggested_order_quantity}
+                                      </td>
+                                    </tr>
+                                  ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                  </>
+                )}
             </>
           )}
 

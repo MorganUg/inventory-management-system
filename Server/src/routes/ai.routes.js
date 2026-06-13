@@ -6,6 +6,7 @@ import {
   getInsights,
   getRecommendations,
   getAISummary,
+  getRawMaterialRestock,
 } from "../controllers/ai.controller.js";
 
 const router = Router();
@@ -18,5 +19,8 @@ router.get("/forecast/:id", getForecast);
 router.get("/insights/:id", getInsights);
 router.get("/recommendations/:id", getRecommendations);
 router.get("/summary/:id", getAISummary);
+
+// Raw Material Restock Recommendations
+router.post("/raw-material-restock", getRawMaterialRestock);
 
 export default router;

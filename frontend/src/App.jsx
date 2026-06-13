@@ -47,7 +47,7 @@ function App() {
               <Route
                 path="restocks"
                 element={
-                  <RoleRoute roles={["admin", "manager"]}>
+                  <RoleRoute roles={["admin", "manager", "staff"]}>
                     <RestocksPage />
                   </RoleRoute>
                 }

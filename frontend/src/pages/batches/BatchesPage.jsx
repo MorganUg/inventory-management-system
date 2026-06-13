@@ -121,110 +121,112 @@ export default function BatchesPage() {
 
       {/* Batches Table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {[
-                "Batch Name",
-                "Status",
-                "Expected Yield",
-                "Actual Yield",
-                "Start Date",
-                "End Date",
-                "Created By",
-                "",
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map((b) => {
-              const Icon = statusIcon[b.status] || Clock;
-              return (
-                <tr key={b.id} className="hover:bg-gray-50">
-                  {/* Name */}
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {b.batch_name}
-                  </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {[
+                  "Batch Name",
+                  "Status",
+                  "Expected Yield",
+                  "Actual Yield",
+                  "Start Date",
+                  "End Date",
+                  "Created By",
+                  "",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((b) => {
+                const Icon = statusIcon[b.status] || Clock;
+                return (
+                  <tr key={b.id} className="hover:bg-gray-50">
+                    {/* Name */}
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {b.batch_name}
+                    </td>
 
-                  {/* Status */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <Icon
-                        size={13}
-                        className={
-                          b.status === "completed"
-                            ? "text-green-500"
-                            : b.status === "in_progress"
-                              ? "text-amber-500"
-                              : b.status === "cancelled"
-                                ? "text-red-500"
-                                : "text-blue-500"
-                        }
-                      />
-                      <Badge color={statusColor[b.status]}>
-                        {b.status.replace("_", " ")}
-                      </Badge>
-                    </div>
-                  </td>
+                    {/* Status */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <Icon
+                          size={13}
+                          className={
+                            b.status === "completed"
+                              ? "text-green-500"
+                              : b.status === "in_progress"
+                                ? "text-amber-500"
+                                : b.status === "cancelled"
+                                  ? "text-red-500"
+                                  : "text-blue-500"
+                          }
+                        />
+                        <Badge color={statusColor[b.status]}>
+                          {b.status.replace("_", " ")}
+                        </Badge>
+                      </div>
+                    </td>
 
-                  {/* Expected yield */}
-                  <td className="px-4 py-3 text-gray-600">
-                    {b.expected_yield
-                      ? parseFloat(b.expected_yield).toLocaleString()
-                      : "—"}
-                  </td>
+                    {/* Expected yield */}
+                    <td className="px-4 py-3 text-gray-600">
+                      {b.expected_yield
+                        ? parseFloat(b.expected_yield).toLocaleString()
+                        : "—"}
+                    </td>
 
-                  {/* Actual yield */}
-                  <td className="px-4 py-3">
-                    {b.actual_yield ? (
-                      <span className="text-green-600 font-medium">
-                        {parseFloat(b.actual_yield).toLocaleString()}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </td>
+                    {/* Actual yield */}
+                    <td className="px-4 py-3">
+                      {b.actual_yield ? (
+                        <span className="text-green-600 font-medium">
+                          {parseFloat(b.actual_yield).toLocaleString()}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
 
-                  {/* Start date */}
-                  <td className="px-4 py-3 text-gray-500">
-                    {b.start_date
-                      ? new Date(b.start_date).toLocaleDateString()
-                      : "—"}
-                  </td>
+                    {/* Start date */}
+                    <td className="px-4 py-3 text-gray-500">
+                      {b.start_date
+                        ? new Date(b.start_date).toLocaleDateString()
+                        : "—"}
+                    </td>
 
-                  {/* End date */}
-                  <td className="px-4 py-3 text-gray-500">
-                    {b.end_date
-                      ? new Date(b.end_date).toLocaleDateString()
-                      : "—"}
-                  </td>
+                    {/* End date */}
+                    <td className="px-4 py-3 text-gray-500">
+                      {b.end_date
+                        ? new Date(b.end_date).toLocaleDateString()
+                        : "—"}
+                    </td>
 
-                  {/* Created by */}
-                  <td className="px-4 py-3 text-gray-500">
-                    {b.created_by_name || "—"}
-                  </td>
+                    {/* Created by */}
+                    <td className="px-4 py-3 text-gray-500">
+                      {b.created_by_name || "—"}
+                    </td>
 
-                  {/* View detail */}
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => navigate(`/batches/${b.id}`)}
-                      className="flex items-center gap-1 text-amber-500 hover:text-amber-600 transition-colors text-xs font-medium"
-                    >
-                      <Eye size={14} /> View
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    {/* View detail */}
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => navigate(`/batches/${b.id}`)}
+                        className="flex items-center gap-1 text-amber-500 hover:text-amber-600 transition-colors text-xs font-medium"
+                      >
+                        <Eye size={14} /> View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
         {filtered.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-10">
