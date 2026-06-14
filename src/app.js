@@ -48,7 +48,13 @@ app.use(
 );
 
 // React dev server
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false, // Disable CSP for APIs (or configure properly)
+  }),
+);
+
 app.use(morgan("dev"));
 app.use(express.json());
 app.use("/api", apiLimiter); // Apply to all API routes
