@@ -22,29 +22,31 @@ import aiRoutes from "./routes/ai.routes.js";
 
 const app = express();
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
-  : ["http://localhost:5173"]; // Default to React dev server
+const allowedOrigins = [
+  "http://localhost:5173", // Local dev (Vite)
+  "http://localhost:3000",
+  "https://inventory-management-system-nine-green.vercel.app/", // ← Add your Vercel URL here
+  "https://vercel.com/morgan-ebasu-project/inventory-management-system/6DMBvTvY3zdgxFeadhFHcoscXZDT",
+];
 
-// Middleware
+// CORS middleware
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowedOrigins = process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-        : ["http://localhost:5173"];
-
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.log(`❌ CORS blocked: ${origin}`);
         callback(new Error(`CORS blocked: ${origin}`));
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
-); // React dev server
+);
+
+// React dev server
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
