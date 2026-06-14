@@ -66,6 +66,15 @@ app.use("/api/stock-movements", stockMovementRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/ai", aiRoutes);
 
+app.get("/", (req, res) => {
+  res.json({
+    message: "Welcome to the Inventory Management System API",
+    status: "OK",
+    environment: process.env.NODE_ENV,
+    time: new Date().toISOString(),
+  });
+});
+
 // Health check
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
