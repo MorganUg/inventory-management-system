@@ -30,31 +30,10 @@ const allowedOrigins = [
 ];
 
 // CORS middleware
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        console.log("Blocked origin:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
+app.use(cors());
 
 // React dev server
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    contentSecurityPolicy: false, // Disable CSP for APIs (or configure properly)
-  }),
-);
-
+app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use("/api", apiLimiter); // Apply to all API routes
