@@ -8,8 +8,9 @@ const { Pool } = pg;
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // For development with self-signed certs; adjust for production
+    rejectUnauthorized: true,
   },
+  options: "-c search_path=public",
 });
 
 // const result = await pool.query("SELECT NOW()");
