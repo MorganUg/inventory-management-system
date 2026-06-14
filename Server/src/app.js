@@ -32,20 +32,10 @@ const allowedOrigins = [
 // CORS middleware
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, Postman, etc.)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log(`CORS Blocked Origin: ${origin}`);
-        callback(new Error(`CORS blocked: ${origin}`));
-      }
-    },
+    origin: allowedOrigins, // Simpler & more reliable
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["Authorization"],
-    preflightContinue: false,
+    allowedHeaders: ["Content-Type", "Authorization"],
     optionsSuccessStatus: 204,
   }),
 );
@@ -54,7 +44,7 @@ app.use(
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
-app.use("/api", apiLimiter); // Apply to ll API routes
+app.use("/api", apiLimiter); // Apply to all API routes
 
 // Routes
 app.use("/api/auth", authRoutes);
