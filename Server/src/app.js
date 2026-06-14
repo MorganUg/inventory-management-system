@@ -68,15 +68,16 @@ app.use("/api/ai", aiRoutes);
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Welcome to the Inventory Management System API",
+    message: "AI Inventory Management System API is Running!",
     status: "OK",
     environment: process.env.NODE_ENV,
     time: new Date().toISOString(),
+    docs: "/api/health",
   });
 });
 
 // Health check
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // Global error handler — must be last
 app.use(errorHandler);
