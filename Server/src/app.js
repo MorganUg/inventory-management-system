@@ -30,15 +30,7 @@ const allowedOrigins = [
 ];
 
 // CORS middleware
-app.use(
-  cors({
-    origin: allowedOrigins, // Simpler & more reliable
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 204,
-  }),
-);
+app.use(cors());
 
 // React dev server
 app.use(helmet());
