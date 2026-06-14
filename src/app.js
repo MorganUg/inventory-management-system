@@ -22,28 +22,21 @@ import aiRoutes from "./routes/ai.routes.js";
 
 const app = express();
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
-  : ["http://localhost:5173"]; // Default to React dev server
+const allowedOrigins = [
+  "http://localhost:5173", // Local dev (Vite)
+  "http://localhost:3000",
+  "https://inventory-management-system-nine-green.vercel.app/", // ← Add your Vercel URL here
+  "https://vercel.com/morgan-ebasu-project/inventory-management-system/6DMBvTvY3zdgxFeadhFHcoscXZDT",
+];
 
-// Middleware
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Allow non-browser clients
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS blocked: ${origin} is not allowed`));
-      }
-    },
-    credentials: true,
-  }),
-); // React dev server
+// CORS middleware
+app.use(cors());
+
+// React dev server
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
-app.use("/api", apiLimiter); // Apply to ll API routes
+app.use("/api", apiLimiter); // Apply to all API routes
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -61,8 +54,18 @@ app.use("/api/stock-movements", stockMovementRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/ai", aiRoutes);
 
+app.get("/", (req, res) => {
+  res.json({
+    message: "AI Inventory Management System API is Running!",
+    status: "OK",
+    environment: process.env.NODE_ENV,
+    time: new Date().toISOString(),
+    docs: "/api/health",
+  });
+});
+
 // Health check
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // Global error handler — must be last
 app.use(errorHandler);
