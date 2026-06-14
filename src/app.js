@@ -25,15 +25,36 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173", // Local dev (Vite)
   "http://localhost:3000",
-  "https://inventory-management-system-nine-green.vercel.app/", // ← Add your Vercel URL here
-  "https://vercel.com/morgan-ebasu-project/inventory-management-system/6DMBvTvY3zdgxFeadhFHcoscXZDT",
+  "https://inventory-management-system-git-main-morgan-ebasu-project.vercel.app/", // ← Add your Vercel URL here
+  "https://inventory-management-system-3n9ajnabg-morgan-ebasu-project.vercel.app/",
 ];
 
 // CORS middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        console.log("Blocked origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 // React dev server
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false, // Disable CSP for APIs (or configure properly)
+  }),
+);
+
 app.use(morgan("dev"));
 app.use(express.json());
 app.use("/api", apiLimiter); // Apply to all API routes
