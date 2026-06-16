@@ -22,9 +22,15 @@ import aiRoutes from "./routes/ai.routes.js";
 
 const app = express();
 
+// Railway/reverse proxies send X-Forwarded-For; required for express-rate-limit
+app.set("trust proxy", 1);
+
+// CORS middleware
 const allowedOrigins = [
-  "http://localhost:5173", // Local dev (Vite)
+  "http://localhost:5173",
   "http://localhost:3000",
+  "https://inventory-management-system-nine-green.vercel.app",
+  "https://inventory-management-system-git-main-morgan-ebasu-project.vercel.app", // Also add this one from logs
 ];
 
 app.use(
@@ -44,6 +50,17 @@ app.use(
 
 app.use(morgan("dev"));
 app.use(express.json());
+
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.get("/api", (req, res) => {
+  res.json({
+    message: "AI Inventory Management System API",
+    status: "OK",
+    health: "/api/health",
+  });
+});
+
 app.use("/api", apiLimiter); // Apply to all API routes
 
 // Routes
@@ -71,9 +88,6 @@ app.get("/", (req, res) => {
     docs: "/api/health",
   });
 });
-
-// Health check
-app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // Global error handler — must be last
 app.use(errorHandler);
