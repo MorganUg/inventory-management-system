@@ -29,8 +29,8 @@ app.set("trust proxy", 1);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://inventory-management-system-nine-green.vercel.app",
-  "https://inventory-management-system-git-main-morgan-ebasu-project.vercel.app", // Also add this one from logs
+  "https://vercel.com/morgan-ebasu-project/inventory-management-system/9tR1HhX9GpypGbu1gUJF6a6CdLXL",
+  "https://inventory-management-system-wine-pi.vercel.app/", // Also add this one from logs
 ];
 
 app.use(
