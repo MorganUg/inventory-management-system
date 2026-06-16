@@ -29,14 +29,44 @@ app.set("trust proxy", 1);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://vercel.com/morgan-ebasu-project/inventory-management-system/9tR1HhX9GpypGbu1gUJF6a6CdLXL",
-  "https://inventory-management-system-wine-pi.vercel.app/", // Also add this one from logs
+  "https://inventory-management-system-wine-pi.vercel.app", // Also add this one from logs
 ];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, postman)
+      if (!origin) return callback(null, true);
+
+      // Check if origin matches any allowed origin
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        // ✅ ADD: Also allow all Vercel preview deployments dynamically
+        if (
+          origin.endsWith(".vercel.app") ||
+          origin.endsWith("-sigma.vercel.app")
+        ) {
+          callback(null, true);
+        } else {
+          console.log("Blocked origin:", origin);
+          callback(new Error("Not allowed by CORS"));
+        }
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    maxAge: 86400, // 24 hours
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   }),
 );
 
