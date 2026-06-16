@@ -3,7 +3,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL ||
-    "https://ai-inventory-management-system-production.up.railway.app/api",
+    "https://inventory-management-system-production-5941.up.railway.app/api",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
 });
