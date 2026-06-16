@@ -25,16 +25,6 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173", // Local dev (Vite)
   "http://localhost:3000",
-  "https://inventory-management-system-git-main-morgan-ebasu-project.vercel.app/", // ← Add your Vercel URL here
-  "https://inventory-management-system-3n9ajnabg-morgan-ebasu-project.vercel.app/",
-];
-
-// CORS middleware
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://inventory-management-system-nine-green.vercel.app",
-  "https://inventory-management-system-git-main-morgan-ebasu-project.vercel.app", // Also add this one from logs
 ];
 
 app.use(
