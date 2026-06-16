@@ -1,0 +1,17 @@
+POST             /api/auth/register   Register user
+POST             /api/auth/login      Login
+GET              /api/auth/me         Get current user
+GET/POST         /api/suppliers       List / Add supplier
+GET/PUT/DELETE   /api/suppliers/:id   Get / Edit / Delete
+GET/POST     /api/customers       List / Add customer
+GET/POST     /api/categories      List / Add category
+GET/POST     /api/raw-materials   List / Add material
+GET/POST     /api/restocks        List / Add restock
+GET/POST     /api/bom             List / Add BOM
+GET/POST     /api/batches         List / Create batch
+GET          /api/batches/:id   Batch detail with materials & outputs
+PATCH        /api/batches/:id/status    Update batch status
+POST         /api/batches/:id/complete    Complete batch (deducts stock)
+GET/POST     /api/finished-goods    List / Add product
+GET          /POST/api/dispatches   List / Create dispatch
+GET          /api/stock-movements   Full audit trail

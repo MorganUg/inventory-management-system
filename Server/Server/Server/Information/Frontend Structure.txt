@@ -1,0 +1,70 @@
+src/
+├── api/
+│   ├── axios.js                  # axios instance
+│   ├── auth.api.js
+│   ├── suppliers.api.js
+│   ├── customers.api.js
+│   ├── categories.api.js
+│   ├── rawMaterials.api.js
+│   ├── restocks.api.js
+│   ├── bom.api.js
+│   ├── batches.api.js
+│   ├── finishedGoods.api.js
+│   ├── dispatches.api.js
+│   └── stockMovements.api.js
+├── hooks/
+│   ├── useAuth.js
+│   ├── useSuppliers.js
+│   ├── useRawMaterials.js
+│   ├── useBatches.js
+│   ├── useFinishedGoods.js
+│   ├── useDispatches.js
+│   └── useStockMovements.js
+├── context/
+│   └── AuthContext.jsx
+├── components/
+│   ├── layout/
+│   │   ├── AppLayout.jsx          # sidebar + navbar wrapper
+│   │   ├── Sidebar.jsx
+│   │   └── Navbar.jsx
+│   ├── ui/
+│   │   ├── Button.jsx
+│   │   ├── Input.jsx
+│   │   ├── Badge.jsx
+│   │   ├── Modal.jsx
+│   │   ├── Table.jsx
+│   │   ├── StatCard.jsx
+│   │   └── EmptyState.jsx
+│   └── shared/
+│       ├── ProtectedRoute.jsx
+│       └── PageHeader.jsx
+├── pages/
+│   ├── auth/
+│   │   └── LoginPage.jsx
+│   ├── DashboardPage.jsx
+│   ├── suppliers/
+│   │   ├── SuppliersPage.jsx
+│   │   └── SupplierForm.jsx
+│   ├── customers/
+│   │   ├── CustomersPage.jsx
+│   │   └── CustomerForm.jsx
+│   ├── rawMaterials/
+│   │   ├── RawMaterialsPage.jsx
+│   │   └── RawMaterialForm.jsx
+│   ├── restocks/
+│   │   └── RestocksPage.jsx
+│   ├── bom/
+│   │   └── BomPage.jsx
+│   ├── batches/
+│   │   ├── BatchesPage.jsx
+│   │   ├── BatchDetailPage.jsx
+│   │   └── BatchForm.jsx
+│   ├── finishedGoods/
+│   │   ├── FinishedGoodsPage.jsx
+│   │   └── FinishedGoodForm.jsx
+│   ├── dispatches/
+│   │   └── DispatchesPage.jsx
+│   └── stockMovements/
+│       └── StockMovementsPage.jsx
+├── App.jsx
+└── main.jsx

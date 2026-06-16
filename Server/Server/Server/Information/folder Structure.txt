@@ -1,0 +1,41 @@
+sweet-inventory-api/
+├── src/
+│   ├── server.js              # entry point
+│   ├── app.js                 # express app setup
+│   ├── db.js                  # postgres connection pool
+│   ├── middleware/
+│   │   ├── auth.js            # JWT verification
+│   │   ├── roles.js           # role-based access
+│   │   └── errorHandler.js    # global error handler
+│   ├── routes/
+│   │   ├── auth.routes.js
+│   │   ├── users.routes.js
+│   │   ├── suppliers.routes.js
+│   │   ├── customers.routes.js
+│   │   ├── categories.routes.js
+│   │   ├── rawMaterials.routes.js
+│   │   ├── restocks.routes.js
+│   │   ├── bom.routes.js
+│   │   ├── batches.routes.js
+│   │   ├── finishedGoods.routes.js
+│   │   ├── dispatches.routes.js
+│   │   └── stockMovements.routes.js
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   ├── users.controller.js
+│   │   ├── suppliers.controller.js
+│   │   ├── customers.controller.js
+│   │   ├── categories.controller.js
+│   │   ├── rawMaterials.controller.js
+│   │   ├── restocks.controller.js
+│   │   ├── bom.controller.js
+│   │   ├── batches.controller.js
+│   │   ├── finishedGoods.controller.js
+│   │   ├── dispatches.controller.js
+│   │   └── stockMovements.controller.js
+│   └── services/
+│       ├── restockService.js
+│       ├── batchService.js
+│       └── dispatchService.js
+├── .env
+└── .gitignore
